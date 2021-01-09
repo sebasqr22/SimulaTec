@@ -51,16 +51,27 @@ black = (0, 0, 0)
 sandColor = (245, 194, 109)
 ultraDarkGreen = (2, 48, 0)
 strangeBlue = (0, 130, 139)
+oliveGreen = (161, 169, 106)
 
 
 
 
 def Menu(): #Menu screen
-    screen.fill(white)
+    screen.fill(black)
 
-    screen.blit(background, (0,0))
+    ##screen.blit(background, (0,0))
 
-    TextButton("PLAY", 120, 200, 120, 40, white, gray, 30, "comenzar", True)
+    TextButton("DESIGN", 50, 200, 120, 40, black, white, 30, 250, "design", True)
+
+    TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
+
+
+def DesignMode(): # Screen where someone can design a model
+    screen.fill(gray)
+
+    Text(123, 123, 40, "Esta es pantalla de diseno", white)
+
+    TextButton("MENU", 120, 200, 120, 40, black, white, 30, 20, "menu", True)
 
     
 # Objects 
@@ -80,13 +91,16 @@ def Button(x, ys, wid, hei, image,fill, action = None):#function to create a but
                  
     screenblit(image, (x, ys))
 
-def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, action = None, OptionalRect = None):
+def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None):
+    global ScreenNum
     color = ActiveColor
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
 
+    width += extraSize
+
     if OptionalRect:
-        pygame.draw.rect(screen, strangeBlue, [xpos, ypos, width, height])
+        pygame.draw.rect(screen, oliveGreen, [xpos, ypos, width, height])
 
     color = InactiveColor
     if xpos + width > mouse[0] > xpos and ypos + height > mouse[1] > ypos:
@@ -94,9 +108,13 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
         #PrintScreen(text, xpos + 60, ypos + 60, text_size, ActiveColor)
         color = ActiveColor
         if click[0] == 1:
-            if action == "comenzar":
-                print("heeey")
+            if action == "design":
+                ScreenNum = 1
 
+            elif action == "menu":
+                ScreenNum = 0
+
+            elif action == "import"
    
     PrintText( xpos, ypos, text_size, text, color, width, height)
         
@@ -106,11 +124,13 @@ def PrintText(x, y, size, text, color, width = None, height = None):
     text = font.render(text, True, color)
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
 
-
+def Text(x, y, size, text, color):
+    font = pygame.font.SysFont("powergreen", size)
+    text = font.render(text, True, color)
+    screen.blit(text, (x,y))
 
                    
-while(True):
-    
+while True:    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -118,5 +138,8 @@ while(True):
 
     if ScreenNum == 0:
         Menu()
+
+    elif ScreenNum == 1:
+        DesignMode()
     
     pygame.display.update()
