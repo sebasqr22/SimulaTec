@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import random
+from tkinter import *
 from tkinter import messagebox
 import os
 
@@ -54,7 +55,7 @@ strangeBlue = (0, 130, 139)
 oliveGreen = (161, 169, 106)
 
 
-
+#SCREENS
 
 def Menu(): #Menu screen
     screen.fill(black)
@@ -72,7 +73,6 @@ def DesignMode(): # Screen where someone can design a model
     Text(123, 123, 40, "Esta es pantalla de diseno", white)
 
     TextButton("MENU", 120, 200, 120, 40, black, white, 30, 20, "menu", True)
-
     
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
@@ -81,7 +81,6 @@ def Button(x, ys, wid, hei, image,fill, action = None):#function to create a but
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
 
     if x + wid > mousePos[0] > x and ys + hei > mousePos[1] > ys:
-        print("fuck me")
         pygame.draw.rect(game, fill, [x, ys, wid, hei])#if the mouse if above the image and creates a rectangle
         if click[0] == 1 and action != None:
             active = False
@@ -114,7 +113,11 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "menu":
                 ScreenNum = 0
 
-            elif action == "import"
+            elif action == "import":
+                Tk().wm_withdraw()
+                if messagebox.askyesno("SAVED PROJECTS", "Do you want to load this project?"):
+                   hola =  ReadProject("savedProjects.txt")
+                   SeparateContent(hola)
    
     PrintText( xpos, ypos, text_size, text, color, width, height)
         
@@ -129,7 +132,40 @@ def Text(x, y, size, text, color):
     text = font.render(text, True, color)
     screen.blit(text, (x,y))
 
-                   
+def WriteNewSaved(info): #writes info to then load a project
+    route = "./savedProjects/savedProjects.txt"
+    registry = open(route, "a")
+    registry.write(info + "\n")
+    registry.close()
+
+def ReadProject(project):
+    route = "./savedProjects/" + project
+    read = open(route)
+    content = read.readlines()
+    read.close()
+    return content
+
+def SeparateContent(data):
+    length = len(data)
+    counter = 0
+    newList = []
+    while counter < length:
+        if "\n" in data[counter]:
+            newList += data[counter].split("\n")
+        counter += 1
+    hola = ValidateEmpty(newList)
+    print(hola)
+
+def ValidateEmpty(data):
+    length = len(data)
+    newList = []
+    counter = 0
+    while counter < length:
+        newList += data[counter]
+        counter += 2
+    return newList
+
+######## MAIN LOOP ############                
 while True:    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
