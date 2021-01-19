@@ -18,6 +18,8 @@ screen = pygame.display.set_mode((s_width,s_height))
 click = pygame.mouse.get_pressed()
 ScreenNum = 0
 
+saved = []
+
 img_dir = os.path.join(os.path.dirname(__file__),'imgs')
 
 def cargar_img(nombre):
@@ -33,10 +35,13 @@ def cargar_img(nombre):
 
 #Images
 background = cargar_img("wallpaper.jpg")
-
+res_image = cargar_img("resistencia.png")
 #SpriteGroups
 
 all_sprites = pygame.sprite.Group()
+resistance_S = pygame.sprite.Group()
+power_S = pygame.sprite.Group()
+cable_S = pygame.sprite.Group()
 #Colors
 red = (255, 0, 0)
 darkRed = (170, 0, 0)
@@ -58,21 +63,98 @@ oliveGreen = (161, 169, 106)
 #SCREENS
 
 def Menu(): #Menu screen
+    global saved
     screen.fill(black)
 
-    ##screen.blit(background, (0,0))
+    Text(300, 10, 40, "What kind of circuit do you want to open?", white)
 
-    TextButton("DESIGN", 50, 200, 120, 40, black, white, 30, 250, "design", True)
+    TextButton("CREATE NEW", 400, 60, 120, 40, black, white, 30, 250, "design", True)
+    projects =  ReadProject("savedProjects.txt")
+    saved = SeparateContent(projects)
+    xpos = 50
+    ypos = 250
+    length = len(saved)
+    counter = 0
+    quantityCounter = 0
 
-    TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
+    Text(50, 260, 30, "IMPORTS:", white)
 
+    while counter < length:
+        if counter == (length-1):
+            break
+        
+        if quantityCounter == 8:
+            ypos = 250
+            xpos += 50
+        ypos += 50
+
+        TextButton(saved[counter], xpos, ypos, 120, 40, black, white, 30, 20, "import", True, saved[counter])
+
+        counter += 1
+        quantityCounter += 1
+
+    #TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
+
+class Element(pygame.sprite.Sprite):
+
+    def __init__(self, image, x, y):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.w = self.rect.get_width()
+        self.h = self.rect.get_height()
+        self.x = x
+        self.y = y
+
+    
+    def over(self, pos):
+            if pos[0] > self.x and pos[0] < self.x + self.w:
+                if pos[1] > self.y and pos[1] < self.y + self.h:
+                    return True
+            return False   
+
+
+
+class Resistance(Element):
+
+    def ___init__(self, idr, x , y):
+        Element.__init__(self, res_image, x, y)
+        self.res = 100
+        self.id = "R" + str(idr)
+        self.connectedto = None
+        
+
+    def get_Res(self):
+        return self.res
+    
+    def set_Res(self, res):
+        self.res = res
+    
+    def get_Id(self):
+        return self.id
+    
+    def set_Id(self, idr):
+        self.id = id
+    
+    def get_Connectedto(self):
+        return self.connectedto
+    
+    def set_Connectedto(self, node):
+        self.connectedto = node
+
+    
 
 def DesignMode(): # Screen where someone can design a model
-    screen.fill(gray)
-
+    #screen.fill(gray)
+    
     Text(123, 123, 40, "Esta es pantalla de diseno", white)
 
     TextButton("MENU", 120, 200, 120, 40, black, white, 30, 20, "menu", True)
+
+    
+    Resistance(1,20,20)
+
     
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
@@ -90,8 +172,8 @@ def Button(x, ys, wid, hei, image,fill, action = None):#function to create a but
                  
     screenblit(image, (x, ys))
 
-def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None):
-    global ScreenNum
+def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None):
+    global ScreenNum, saved
     color = ActiveColor
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
@@ -116,8 +198,9 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "import":
                 Tk().wm_withdraw()
                 if messagebox.askyesno("SAVED PROJECTS", "Do you want to load this project?"):
-                   hola =  ReadProject("savedProjects.txt")
-                   SeparateContent(hola)
+                    project = ReadProject(toLoad + ".txt")
+                    print(project)
+                   
    
     PrintText( xpos, ypos, text_size, text, color, width, height)
         
@@ -135,7 +218,7 @@ def Text(x, y, size, text, color):
 def WriteNewSaved(info): #writes info to then load a project
     route = "./savedProjects/savedProjects.txt"
     registry = open(route, "a")
-    registry.write(info + "\n")
+    registry.write(info + "{")
     registry.close()
 
 def ReadProject(project):
@@ -146,15 +229,9 @@ def ReadProject(project):
     return content
 
 def SeparateContent(data):
-    length = len(data)
-    counter = 0
-    newList = []
-    while counter < length:
-        if "\n" in data[counter]:
-            newList += data[counter].split("\n")
-        counter += 1
-    hola = ValidateEmpty(newList)
-    print(hola)
+    data = data[0].split("{")
+    return data
+    
 
 def ValidateEmpty(data):
     length = len(data)
@@ -177,5 +254,8 @@ while True:
 
     elif ScreenNum == 1:
         DesignMode()
+
+    elif ScreenNum == 2:
+        ImportScreen()
     
     pygame.display.update()
