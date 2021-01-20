@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import sys
 import time
 import random
@@ -42,6 +43,8 @@ all_sprites = pygame.sprite.Group()
 resistance_S = pygame.sprite.Group()
 power_S = pygame.sprite.Group()
 cable_S = pygame.sprite.Group()
+
+
 #Colors
 red = (255, 0, 0)
 darkRed = (170, 0, 0)
@@ -78,20 +81,21 @@ def Menu(): #Menu screen
     quantityCounter = 0
 
     Text(50, 260, 30, "IMPORTS:", white)
+    if saved != []:
+        while counter < length:
+            if counter == (length-1):
+                break
+            
+            if quantityCounter == 8:
+                ypos = 250
+                xpos += 50
+                quantityCounter = 0
+            ypos += 50
 
-    while counter < length:
-        if counter == (length-1):
-            break
-        
-        if quantityCounter == 8:
-            ypos = 250
-            xpos += 50
-        ypos += 50
+            TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 20, "import", True, saved[counter])
 
-        TextButton(saved[counter], xpos, ypos, 120, 40, black, white, 30, 20, "import", True, saved[counter])
-
-        counter += 1
-        quantityCounter += 1
+            counter += 1
+            quantityCounter += 1
 
     #TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
 
@@ -102,10 +106,12 @@ class Element(pygame.sprite.Sprite):
 
         self.image = image
         self.rect = self.image.get_rect()
-        self.w = self.rect.get_width()
-        self.h = self.rect.get_height()
         self.x = x
         self.y = y
+        self.rect.center = (self.x, self.y)
+        self.w = self.image.get_height()
+        self.h = self.image.get_width()
+        
 
     
     def over(self, pos):
@@ -115,7 +121,7 @@ class Element(pygame.sprite.Sprite):
             return False   
 
 
-
+    
 class Resistance(Element):
 
     def ___init__(self, idr, x , y):
@@ -143,19 +149,19 @@ class Resistance(Element):
     def set_Connectedto(self, node):
         self.connectedto = node
 
-    
+
 
 def DesignMode(): # Screen where someone can design a model
-    #screen.fill(gray)
+    screen.fill(gray)
     
     Text(123, 123, 40, "Esta es pantalla de diseno", white)
 
     TextButton("MENU", 120, 200, 120, 40, black, white, 30, 20, "menu", True)
 
     
-    Resistance(1,20,20)
-
     
+    all_sprites.draw(screen)
+   
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
     global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE
@@ -197,28 +203,40 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
 
             elif action == "import":
                 Tk().wm_withdraw()
-                if messagebox.askyesno("SAVED PROJECTS", "Do you want to load this project?"):
-                    project = ReadProject(toLoad + ".txt")
+                if messagebox.askyesno("SAVED PROJECTS", "Do you want to load " + toLoad.split(".")[0] + "?"):
+                    project = ReadProject(toLoad)
                     print(project)
-                   
+        
+        elif click[2] == 1:
+            if action == "import":
+                Tk().wm_withdraw()
+                if messagebox.askyesno("SAVED PROJECTS", "Do you want to detele " + toLoad.split(".")[0] + "?"):
+                    DeleteFile(toLoad)
    
     PrintText( xpos, ypos, text_size, text, color, width, height)
         
 
 def PrintText(x, y, size, text, color, width = None, height = None):
-    font = pygame.font.SysFont("powergreen", size)
+    font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
 
 def Text(x, y, size, text, color):
-    font = pygame.font.SysFont("powergreen", size)
+    font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     screen.blit(text, (x,y))
 
-def WriteNewSaved(info): #writes info to then load a project
+def WriteNewSaved(name, data): #writes info to then load a project
     route = "./savedProjects/savedProjects.txt"
     registry = open(route, "a")
-    registry.write(info + "{")
+    registry.write(name + "{")
+    registry.close()
+    WriteProject(data, name)
+
+def WriteProject(data, name):
+    route = "./savedProjects/" + name
+    registry = open(route, "w")
+    registry.write(data)
     registry.close()
 
 def ReadProject(project):
@@ -231,16 +249,33 @@ def ReadProject(project):
 def SeparateContent(data):
     data = data[0].split("{")
     return data
-    
 
-def ValidateEmpty(data):
-    length = len(data)
-    newList = []
-    counter = 0
-    while counter < length:
-        newList += data[counter]
-        counter += 2
-    return newList
+def DeleteFile(name):
+    route = "./savedProjects"
+    files = os.listdir(route)
+
+    if name in files:
+        os.remove(route + "/" + name)
+
+    files = os.listdir(route)
+    print("Los files son: ")
+    print(files)
+    
+    route = "./savedProjects/savedProjects.txt"
+    newlist = []
+
+    for save in files:
+        print(save)
+        if save != name and save != 'savedProjects.txt':
+            newlist += [save]
+
+    with open(route,"w") as file:
+        temp = ""
+
+        for elem in newlist:
+            temp += elem + "{"
+        print(temp)
+        file.write(temp)
 
 ######## MAIN LOOP ############                
 while True:    
