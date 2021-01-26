@@ -18,6 +18,7 @@ s_height = 700
 screen = pygame.display.set_mode((s_width,s_height))
 click = pygame.mouse.get_pressed()
 ScreenNum = 0
+tkActive = False
 
 saved = []
 
@@ -76,6 +77,7 @@ def Menu(): #Menu screen
     Text(300, 10, 40, "What kind of circuit do you want to open?", white)
 
     TextButton("CREATE NEW", 400, 60, 120, 40, black, white, 30, 250, "design", True)
+    #TextButton("CREATE FILE", 400, 100, 120, 40, black, white, 30, 250, "new", True)
     projects =  ReadProject("savedProjects.txt")
     saved = SeparateContent(projects)
     xpos = 50
@@ -318,8 +320,6 @@ def DesignMode(): # Screen where someone can design a model
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if pos[1] < s_height-100:
-                        if typeE == 0:
-                            pass
                         if typeE == 1:
                             poscal = calculateLocation(pos)
                             tmp = Resistance(len(resistance_S),poscal[0],poscal[1])
@@ -393,7 +393,6 @@ def DesignMode(): # Screen where someone can design a model
     #Draw all sprites
     all_sprites.draw(screen)
 
-
 """
 with open(file, 'w') as savefile:
     tmp = ""
@@ -406,8 +405,27 @@ with open(file, 'w') as savefile:
         savefile.writelines(tmp+"\n")
 """
 
+def TkinterSaved():
+    global tkActive, box
+    
+    box.config(width=100, height=100)
+    box.title("Save Project")
+    box.resizable(False, False)
 
+    tkActive = True
 
+    nameEntry = Entry(box, width = 25, bg = "#00000")
+    nameEntry.place(x=10, y=80)
+
+    info = Entry(box, width = 25, bg = "#00000")
+    info.place(x=60, y=80)
+
+    create = Button(box, text = "Ok", bg = "#21201E", command = lambda: WriteNewSaved(nameEntry.get(), info.get()))
+    create.place(x = 10, y= 20)
+
+    box.mainloop()
+   
+>>>>>>> Stashed changes
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
     global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE
@@ -452,6 +470,10 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                 if messagebox.askyesno("SAVED PROJECTS", "Do you want to load " + toLoad.split(".")[0] + "?"):
                     project = ReadProject(toLoad)
                     print(project)
+
+            elif action == "new":
+                TkinterSaved()
+                
         
         elif click[2] == 1:
             if action == "import":
@@ -480,6 +502,7 @@ def WriteNewSaved(name, data): #writes info to then load a project
     WriteProject(data, name)
 
 def WriteProject(data, name):
+    global tkActive
     route = "./savedProjects/" + name
     registry = open(route, "w")
     registry.write(data)
