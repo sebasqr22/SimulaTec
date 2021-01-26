@@ -14,7 +14,6 @@ class Vertex:
     def __init__(self, idv):
         self.id = idv
         self.adjacent = {}
-        self.previous = None
 
     def add_Neighbor(self, name, cost = 0):
         self.adjacent[name] = cost
@@ -39,10 +38,6 @@ class Vertex:
 #######################################################################################################
 
 
-
-
-
-    
 class Graph:
 
     def __init__(self):

@@ -40,7 +40,7 @@ background = cargar_img("wallpaper.jpg")
 res_image1 = pygame.transform.scale(cargar_img("resistencia.png"),(100,30))
 res_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("resistencia.png"),(100,30)),90)  
 
-pow_image = pygame.transform.scale(cargar_img("fuente_poder.png"),(100,90))
+pow_image = pygame.transform.scale(cargar_img("fuente_poder.png"),(200,110))
 #SpriteGroups
 
 all_sprites = pygame.sprite.Group()
@@ -164,14 +164,31 @@ class Resistance(pygame.sprite.Sprite):
         self.connectedto = None
         
     def over(self, pos):
-        if pos[0] > self.x and pos[0] < self.x + self.w:
-            if pos[1] > self.y and pos[1] < self.y + self.h:
+        
+        if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
+            if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
                 return True
         return False  
 
-    
-    def options(self, pos):
-        pass
+    def rotate(self):
+        if self.image == res_image1:
+            self.image = res_image2
+            self.rect = self.image.get_rect()
+            self.rect.center = (self.x, self.y)
+            self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
+            self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
+            options.active = False
+            time.sleep(0.3)
+
+        else:
+            self.image = res_image1
+            self.rect = self.image.get_rect()
+            self.rect.center = (self.x, self.y)
+            self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
+            self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
+            options.active = False
+            time.sleep(0.3)
+
         
     def get_Res(self):
         return self.res
@@ -192,6 +209,7 @@ class Resistance(pygame.sprite.Sprite):
         self.connectedto = node
 
 
+
 class Element_Button():
 
     def __init__(self,color,x,y,w,h,border, image):
@@ -209,13 +227,15 @@ class Element_Button():
         self.h = h
         self.border = border
 
-    def draw(self,screen,outline):
+    def draw(self,screen,outline,image):
 
         if outline:
             pygame.draw.rect(screen,self.border,(self.x-2,self.y-2,self.w+4,self.h+4),0)
         
         pygame.draw.rect(screen,self.color,(self.x,self.y,self.w,self.h),0)
-        screen.blit(self.image,(self.x +(self.w//2 - self.rectw//2), self.y + (self.h//2 - self.recth//2)))
+
+        if image:
+            screen.blit(self.image,(self.x +(self.w//2 - self.rectw//2), self.y + (self.h//2 - self.recth//2)))
 
         
             
@@ -225,35 +245,94 @@ class Element_Button():
                 return True
         return False
 
-    def highlight(self):
+    def highlight(self,image):
         self.color = self.colorh
-        self.draw(screen,False)
+        
 
-    def unhighlight(self):
+    def unhighlight(self,image):
         self.color = self.colorR
-        self.draw(screen,False)
-
+        
+    def check(self,pos):
+        if self.over(pos):
+            self.highlight(True)
+        else:
+            self.unhighlight(True)
 
 class ElementOptions():
 
-    def __init__(self,x,y,w,h,text):
+    def __init__(self):
+        """
         self.x = x
         self.y = y
         self.w = w
         self.h = h
-        self.text = text
+        """
+        self.buttons = [Element_Button(gray,600,530,110,40,black,res_image1),
+                        Element_Button(gray,600,580,110,40,red,res_image1), 
+                        Element_Button(gray,600,630,110,40,white,res_image1)]
+
+        self.text = ["Rotate", "Rename", "Delete"]
+        self.item = None
+        self.active = False
 
     def draw(self,screen):
-        pygame.draw.rect(screen,self.color,(self.x,self.y,self.w,self.h),0)
-        font = pygame.font.SysFont("Teko", 10)
-        text = font.render(text, True, black)
-        screen.blit(text, (self.x +(self.w//2 - text.get_width()//2), self.y + (self.h//2 - text.get_height()//2)))
+
+        i = 0
+        for button in self.buttons:
+            button.draw(screen,False,False)
+            if button.color == button.colorh:
+                PrintText(button.x,button.y,15,self.text[i],white,button.w,button.h)
+            else:
+                PrintText(button.x,button.y,15,self.text[i],black,button.w,button.h)
+            i += 1
+
+    def overclick(self,pos):
+        
+        for button in self.buttons:
+            if button.over(pos):
+                if button.border == black:
+                    self.item.rotate()
+
+                elif button.border == red:
+                    pass
+                elif button.border == white:
+                    self.item.kill()
+                    self.active = False
+                
+    def over(self,pos):
+        for button in self.buttons:
+            if button.over(pos):
+                button.highlight(False)
+                self.draw(screen)
+            else:
+                button.unhighlight(False)
+                self.draw(screen)
+
+def drawlines():
+
+    position = 100
+    for i in range(1,8):
+        pygame.draw.line(screen,black,(0,position) , (s_width-220 ,position),1)
+        
+        position += 70
+
+    position = 70
+    for i in range(1,15):
+        pygame.draw.line(screen,black,(position,100) , (position,s_height-110),1)
+        position += 70
+
+    pygame.draw.line(screen,black,(0,590), (s_width-220,590),1)
+    pygame.draw.rect(screen,darkGray,(s_width-200,0,200,s_height),0)
+    pygame.draw.rect(screen,darkGray,(0,s_height-105,s_width,105),0)
 
 #element buttons
-resi_B = Element_Button(gray,100,s_height-70,110,60,black,res_image1)
-power_B = Element_Button(gray,300,s_height-100,110,60,black,pow_image)  
-Xposible = [70, 140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840, 910, 980, 1050]
-Yposible = [100, 170, 240, 310, 380, 450, 520, 590]
+resi_B = Element_Button(gray,100,s_height-90,110,60,black,res_image1)
+power_B = Element_Button(gray,280,s_height-100,110,60,black,pow_image)  
+options = ElementOptions()
+
+#Posible locations
+Xposible = [70, 140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840, 910]
+Yposible = [170, 240, 310, 380, 450, 520]
 
 def calculateLocation(pos):
     posx = pos[0]
@@ -284,31 +363,24 @@ def DesignMode(): # Screen where someone can design a model
         drag_element = None
         if resi_B.over(pos):
             print("Click in resistance")
-            resi_B.highlight()
+            resi_B.highlight(True)
             selecting = True
             typeE = 1
             drag_element = res_image1
             
             
         elif power_B.over(pos):
-            power_B.highlight()
+            power_B.highlight(True)
             selecting = True
             typeE = 2
             drag_element = pow_image
             
-        
+ ###############################################################################################################################       
         while selecting:
             screen.fill(white)
+            TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
 
-            position = 100
-            for i in range(1,8):
-                pygame.draw.line(screen,black,(0,position) , (s_width ,position),1)
-                
-                position += 70
-            position = 70
-            for i in range(1,15):
-                pygame.draw.line(screen,black,(position,100) , (position,s_height),1)
-                position += 70
+            drawlines()
 
             pos = pygame.mouse.get_pos()
             screen. blit(drag_element,(pos[0] - (drag_element.get_width()//2) ,pos[1] - (drag_element.get_height()//2)))
@@ -326,7 +398,8 @@ def DesignMode(): # Screen where someone can design a model
                             resistance_S.add(tmp)
                             all_sprites.add(tmp)
                             selecting = False
-                            resi_B.unhighlight()
+                            resi_B.unhighlight(True)
+                            time.sleep(0.3)
 
                         elif typeE == 2:
                             poscal = calculateLocation(pos)
@@ -334,62 +407,60 @@ def DesignMode(): # Screen where someone can design a model
                             power_S.add(tmp)
                             all_sprites.add(tmp)
                             selecting = False
-                            power_B.unhighlight()
+                            power_B.unhighlight(True)
 
                     elif resi_B.over(pos):
                         selecting = False
-                        resi_B.unhighlight()
+                        resi_B.unhighlight(True)
                         time.sleep(0.3)  
                         break
                         
                     elif power_B.over(pos):
                         selecting = False
-                        power_B.unhighlight()
+                        power_B.unhighlight(True)
                         time.sleep(0.3)
                         break
             
-            resi_B.draw(screen,False)
-            power_B.draw(screen,False)
+            resi_B.draw(screen,False,True)
+            power_B.draw(screen,False, True)
             all_sprites.draw(screen)
             pygame.display.update()
-       
+
+###########################################################################################################################      
+    
     #background
     screen.fill(white)
-    #pygame.draw.rect(screen,darkGray,(s_width-200,0,200,s_height),0)
-    #pygame.draw.rect(screen,darkGray,(0,s_height-100,s_width,100),0)
-
     
-    position = 100
-    for i in range(1,8):
-        pygame.draw.line(screen,black,(0,position) , (s_width ,position),1)
-        
-        position += 70
-    position = 70
-    for i in range(1,15):
-        pygame.draw.line(screen,black,(position,100) , (position,s_height),1)
-        position += 70
+    drawlines()
     
     #variables
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
     
-    
-
-    Text(123, 123, 40, "Esta es pantalla de diseno", white)
-
     TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
 
-    resi_B.draw(screen,False)
-    power_B.draw(screen,False)
+    resi_B.draw(screen,False,True)
+    power_B.draw(screen,False,True)
 
+    if options.active:
+        options.draw(screen)
+        options.over(mouse)
+
+    resi_B.check(mouse)
+    power_B.check(mouse)
     
- 
     if click[0]:
         for resistance in resistance_S:
-           if resistance.over(mouse):
-               resistance.options(mouse)
+            if resistance.over(mouse):
+               print(resistance.id)
+               options.active = True
+               options.item = resistance
+               
 
-        select_element(mouse)  
+        if options.active:
+            options.overclick(mouse)
+        select_element(mouse) 
+
     #Draw all sprites
     all_sprites.draw(screen)
 
@@ -425,7 +496,6 @@ def TkinterSaved():
 
     box.mainloop()
    
->>>>>>> Stashed changes
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
     global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE
