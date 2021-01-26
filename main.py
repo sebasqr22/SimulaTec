@@ -156,6 +156,7 @@ class Resistance(pygame.sprite.Sprite):
         self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
         
+        
         self.res = 100
         self.id = "R" + str(idr)
         self.connectedto = None
@@ -166,6 +167,10 @@ class Resistance(pygame.sprite.Sprite):
                 return True
         return False  
 
+    
+    def options(self, pos):
+        pass
+        
     def get_Res(self):
         return self.res
     
@@ -206,7 +211,7 @@ class Element_Button():
 
         if outline:
             pygame.draw.rect(screen,self.border,(self.x-2,self.y-2,self.w+4,self.h+4),0)
-
+        
         pygame.draw.rect(screen,self.color,(self.x,self.y,self.w,self.h),0)
         screen.blit(self.image,(self.x +(self.w//2 - self.rectw//2), self.y + (self.h//2 - self.recth//2)))
 
@@ -226,6 +231,22 @@ class Element_Button():
         self.color = self.colorR
         self.draw(screen,False)
 
+
+class ElementOptions():
+
+    def __init__(self,x,y,w,h,text):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.text = text
+
+    def draw(self,screen):
+        pygame.draw.rect(screen,self.color,(self.x,self.y,self.w,self.h),0)
+        font = pygame.font.SysFont("Teko", 10)
+        text = font.render(text, True, black)
+        screen.blit(text, (self.x +(self.w//2 - text.get_width()//2), self.y + (self.h//2 - text.get_height()//2)))
+
 #element buttons
 resi_B = Element_Button(gray,100,s_height-70,110,60,black,res_image1)
 power_B = Element_Button(gray,300,s_height-100,110,60,black,pow_image)  
@@ -242,7 +263,7 @@ def calculateLocation(pos):
 
     for distancex in Xposible:
         minx.append(abs(pos[0]-distancex))
-
+    
     finalx = Xposible[minx.index(min(minx))]
 
     for distancey in Yposible:
@@ -364,6 +385,10 @@ def DesignMode(): # Screen where someone can design a model
     
  
     if click[0]:
+        for resistance in resistance_S:
+           if resistance.over(mouse):
+               resistance.options(mouse)
+
         select_element(mouse)  
     #Draw all sprites
     all_sprites.draw(screen)
