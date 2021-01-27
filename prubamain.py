@@ -11,8 +11,6 @@ pygame.init()
 
 #Global variables
 
-
-
 s_width = 1200
 s_height = 700
 screen = pygame.display.set_mode((s_width,s_height))

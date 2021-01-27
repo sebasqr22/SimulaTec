@@ -141,6 +141,9 @@ class Power_Output(pygame.sprite.Sprite):
         self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
 
+        self.id = "V"+str(len(power_S))
+        self.Voltaje = 5
+
     def over(self, pos):
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
             if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
@@ -168,6 +171,9 @@ class Power_Output(pygame.sprite.Sprite):
             self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
             options.active = False
             time.sleep(0.3)
+
+    def show_data(self):
+        PrintText(self.x,self.y-30,20,self.id +":"+ str(self.Voltaje),blue,self.w,self.h)
 
 
 class Resistance(pygame.sprite.Sprite):
@@ -232,7 +238,8 @@ class Resistance(pygame.sprite.Sprite):
     def set_Connectedto(self, node):
         self.connectedto = node
 
-
+    def show_data(self):
+        PrintText(self.x,self.y-30,20,self.id +":"+ str(self.res),blue,self.w,self.h)
 
 class Element_Button():
 
@@ -352,6 +359,16 @@ class Cable_line():
                 return True
         return False
 
+#Cable list
+class Cable_list():
+    def __init__(self):
+        self.list = []
+
+    def get_list(self):
+        return self.list
+
+    def add_line(self,line):
+        self.list.append(line)
 
 def drawlines():
 
@@ -375,21 +392,11 @@ def drawlines():
     
 
 #element buttons
-resi_B = Element_Button(gray,100,s_height-90,110,60,black,res_image1)
-power_B = Element_Button(gray,280,s_height-90,110,60,black,pow_imageB)  
+resi_B = Element_Button(gray,50,s_height-90,110,60,black,res_image1)
+power_B = Element_Button(gray,230,s_height-90,110,60,black,pow_imageB)  
 options = ElementOptions()
-cable_B = Element_Button(gray,460,s_height-90,110,60,black,pow_imageB)  
+cable_B = Element_Button(gray,410,s_height-90,110,60,black,pow_imageB)  
 
-#Cable list
-class Cable_list():
-    def __init__(self):
-        self.list = []
-
-    def get_list(self):
-        return self.list
-
-    def add_line(self,line):
-        self.list.append(line)
 
 C_list = Cable_list()
 #Posible locations
@@ -562,6 +569,7 @@ def DesignMode(): # Screen where someone can design a model
     if options.active:
         options.draw(screen)
         options.over(mouse)
+        options.item.show_data()
 
     resi_B.check(mouse)
     power_B.check(mouse)
