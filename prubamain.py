@@ -307,9 +307,9 @@ class ElementOptions():
         for button in self.buttons:
             button.draw(screen,False,False)
             if button.color == button.colorh:
-                PrintText(button.x,button.y,15,self.text[i],white,button.w,button.h)
+                PrintText(button.x,button.y,25,self.text[i],white,button.w,button.h)
             else:
-                PrintText(button.x,button.y,15,self.text[i],black,button.w,button.h)
+                PrintText(button.x,button.y,25,self.text[i],black,button.w,button.h)
             i += 1
 
     def overclick(self,pos):
@@ -345,12 +345,7 @@ class Cable_line():
     def draw(self):
         pygame.draw.line(screen,black, self.pos1 , self.pos2,5)
 
-    def over(self,pos):
 
-        if pos[0] > self.pos1[0] and pos[0] < self.pos2[0]:
-            if pos[1] > self.y and pos[1] < self.y + self.h:
-                return True
-        return False
 
 
 def drawlines():
@@ -496,8 +491,6 @@ def DesignMode(): # Screen where someone can design a model
                                 C_list.add_line(Cable_line(pos1,pos2)) 
                                 C_list.add_line(Cable_line(pos2,pos))
                                 active2 = False
-                                cable_B.unhighlight(False)
-                                selecting = False
 
                             elif active1:
                                 active1 = False
@@ -582,9 +575,7 @@ def DesignMode(): # Screen where someone can design a model
                 options.active = True
                 options.item = power
 
-        #for cable in C_list.get_list():
-            #if cable.over(mouse):
-                #options.active = True
+        
         
         select_element(mouse) 
 
