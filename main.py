@@ -109,7 +109,7 @@ def Menu(): #Menu screen
                 quantityCounter = 0
             ypos += 50
 
-            TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 20, "import", True, saved[counter])
+            TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 50, "import", True, saved[counter])
 
             counter += 1
             quantityCounter += 1
@@ -840,31 +840,9 @@ def DesignMode(): # Screen where someone can design a model
 
         select_element(mouse) 
 
-    
-
-
 def Simulationmode():
     pass
 
-def TkinterSaved():
-    global tkActive, box
-    
-    box.config(width=100, height=100)
-    box.title("Save Project")
-    box.resizable(False, False)
-
-    tkActive = True
-
-    nameEntry = Entry(box, width = 25, bg = "#00000")
-    nameEntry.place(x=10, y=80)
-
-    info = Entry(box, width = 25, bg = "#00000")
-    info.place(x=60, y=80)
-
-    create = Button(box, text = "Ok", bg = "#21201E", command = lambda: WriteNewSaved(nameEntry.get(), info.get()))
-    create.place(x = 10, y= 20)
-
-    box.mainloop()
    
 # Objects 
 def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
@@ -922,6 +900,9 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     power_S.empty()
                     graph.empty()
                     C_list.empty()
+                    justSaved = False
+                    counterSave = 0
+                    namePro = ""
                 
 
             elif action == "import":
@@ -1025,14 +1006,7 @@ def DeleteFile(name):
         print(temp)
         file.write(temp)
 
-def SaveProject():
-    global justSaved, counterSave, namePro
-    justSaved = True
-    if counterSave == 0:
-        Tk().wm_withdraw()        
-        newname = simpledialog.askstring("ReValue","Please enter new Name for your savefile")
-        if newname != None:
-            namePro = newname + ".txt"
+def SaveAll():
     with open("./savedProjects/" + namePro, 'w') as savefile:
         tmp = ""
         for res in resistance_S:
@@ -1050,10 +1024,20 @@ def SaveProject():
         for cable in C_list.get_list():
             tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1)+'|'+str(cable.pos2)+"|"+str(cable.rotation)
             savefile.writelines(tmp+"\n")
-    
+
+def SaveProject():
+    global justSaved, counterSave, namePro
+    justSaved = True
     if counterSave == 0:
-        counterSave += 1
-        WriteNewSaved(namePro)
+        Tk().wm_withdraw()        
+        newname = simpledialog.askstring("ReValue","Please enter new Name for your savefile")
+        if newname != None:
+            namePro = newname + ".txt"
+            SaveAll()
+            counterSave += 1
+            WriteNewSaved(namePro)
+    else:
+        SaveAll()
 
 ######## ORDERING ALGORITHMS ########
 def QuickSort(array): #Descending
