@@ -471,6 +471,7 @@ class ElementOptions():
 
 
     def overclick(self,pos):
+        global justSaved
         fbuttons =[]
 
         for ele in self.buttons:
@@ -515,6 +516,8 @@ class ElementOptions():
                     self.item.kill()
 
                     self.active = False
+
+                    justSaved = False
 
                 elif button.border == gray:
                     Tk().wm_withdraw()
@@ -1356,6 +1359,7 @@ def SaveProject():
             else:
                 Tk().wm_withdraw() 
                 messagebox.showerror("ERROR", "The file's name is already used")
+                justSaved = False
         else:
            Tk().wm_withdraw() 
            messagebox.showerror("ERROR", "The file's name can have a maximum length of 15 characters")
