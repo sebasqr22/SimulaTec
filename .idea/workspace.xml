@@ -61,7 +61,7 @@
       <option name="presentableId" value="Default" />
       <updated>1611869536943</updated>
       <workItem from="1611869542114" duration="171000" />
-      <workItem from="1611869728370" duration="342000" />
+      <workItem from="1611869728370" duration="2317000" />
     </task>
     <servers />
   </component>
@@ -81,6 +81,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/SimulaTec$main.coverage" NAME="main Coverage Results" MODIFIED="1611869620822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/SimulaTec$main.coverage" NAME="main Coverage Results" MODIFIED="1611871645984" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -55,6 +55,8 @@ arrow_upRed = cargar_img("flechaArribaRed.png")
 arrow_down = cargar_img("flechaAbajo.png")
 arrow_downRed = cargar_img("flechaAbajoRed.png")
 logo = cargar_img("simulatec.png")
+check = cargar_img("check.png")
+xRed = cargar_img("xRed.png")
 
 #SpriteGroups
 
@@ -142,6 +144,8 @@ class Graph:
         if to in self.v[frm]:
             to = str(to) + str(self.i)
             self.i += 1
+            self.add_Vertex(to)
+
         self.v[frm].update({to: res.get_Res()})
         
     
@@ -655,13 +659,18 @@ def draw_designmode():
     TextButton("Reset Graph", s_width-170, 470, 120, 40, black, white, 30, 20, "resetG", True)
     TextButton("Reset Cables", s_width-170, 540, 120, 40, black, white, 30, 20, "resetC", True)
     TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True)
+
+    if justSaved:
+        screen.blit(check, (940, 10))
+    
+    else:
+        screen.blit(xRed, (940, 10))
+
+    if namePro != "":
+        Text(s_width//2 - 170, 20, 60, namePro.split(".")[0], black)
    
-
-
-
-
 def connect_nodes(node1):
-    graph
+    
     
     selecting = True
     resactive = False
@@ -928,6 +937,14 @@ def Draw_simulation():
     if arrayToPrint != []:
         PrintOrder(arrayToPrint)
     
+    if justSaved:
+        screen.blit(check, (940, 10))
+    
+    else:
+        screen.blit(xRed, (940, 10))
+
+    if namePro != "":
+        Text(s_width//2 - 170, 20, 60, namePro.split(".")[0], black)
    
 
 def Simulationmode():
@@ -1047,7 +1064,7 @@ def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to crea
 
     if x + wid > mouse[0] > x and ys + hei > mouse[1] > ys:
         if click[0] == 1 and action != None:
-            active = False
+            active = False  
             listaRes = []
 
             for resistance in resistance_S:
@@ -1097,7 +1114,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "menu":
                 if not justSaved:
                     Tk().wm_withdraw()
-                    if messagebox.askyesno("SAVED PROJECTS", "Do you want to Exit without saving "  + "?"):
+                    if messagebox.askyesno("SAVED PROJECTS", "Do you want to Exit without saving "  + "?", icon = "warning"):
                         all_sprites.empty()
                         resistance_S.empty()
                         power_S.empty()
@@ -1153,7 +1170,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
 
             elif action == "resetC":
                 Tk().wm_withdraw()
-                if messagebox.askyesno("RESET CABLES", "Do you want to reset the Cables?"):
+                if messagebox.askyesno("RESET CABLES", "Do you want to reset the Cables?", icon = "warning"):
                     C_list.empty()
                 
             elif action == "dijkstra":
@@ -1163,7 +1180,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
         elif click[2] == 1:
             if action == "import":
                 Tk().wm_withdraw()
-                if messagebox.askyesno("SAVED PROJECTS", "Do you want to detele " + toLoad.split(".")[0] + "?"):
+                if messagebox.askyesno("SAVED PROJECTS", "Do you want to detele " + toLoad.split(".")[0] + "?", icon = "warning"):
                     DeleteFile(toLoad)
    
     PrintText( xpos, ypos, text_size, text, color, width, height)
@@ -1411,8 +1428,14 @@ while True:
     #print(random.randint(1,100))   
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()  
+            if not justSaved and ScreenNum != 0:
+                Tk().wm_withdraw()
+                if messagebox.askokcancel("EXIT", "Do you want to exit without saving?", icon="warning"):
+                    pygame.quit()
+                    sys.exit()
+            else:
+                pygame.quit()
+                sys.exit()
 
     if ScreenNum == 0:
         Menu()
@@ -1425,5 +1448,3 @@ while True:
         Simulationmode()
     
     pygame.display.update()
-
-
