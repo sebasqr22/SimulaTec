@@ -180,6 +180,14 @@ class NodeNamer():
         self.i = 0
 
     def get_name(self):
+        if len(node_S) == 0:
+            self.i = 0
+
+        for node in node_S:
+            if node.id == self.letters[self.i]:
+                self.i += 1
+                
+
         tmp = self.letters[self.i]
         self.i += 1
         return tmp
@@ -220,6 +228,7 @@ class Power_Output(pygame.sprite.Sprite):
             self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
             options.active = False
             time.sleep(0.3)
+            justSaved = False
 
         else:
             print("image1")
@@ -230,6 +239,7 @@ class Power_Output(pygame.sprite.Sprite):
             self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
             options.active = False
             time.sleep(0.3)
+            justSaved = False
 
     def show_data(self):
     
@@ -281,6 +291,7 @@ class Resistance(pygame.sprite.Sprite):
             self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
             options.active = False
             time.sleep(0.3)
+            justSaved = False
 
         else:
             self.image = res_image1
@@ -290,6 +301,7 @@ class Resistance(pygame.sprite.Sprite):
             self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
             options.active = False
             time.sleep(0.3)
+            justSaved = False
 
     def get_rotation(self):
         if self.image == res_image1:
@@ -459,8 +471,18 @@ class ElementOptions():
                     
                     newname = simpledialog.askstring("Rename","Please enter new name")
                     if newname != None:
-                        print("Nuevo nombre: " + newname)
-                        self.item.id = newname
+                        if len(newname) <= 10:
+                            try:
+                                newname = int(newname)
+                                Tk().wm_withdraw()
+                                messagebox.showerror("ERROR", "New name can't be an integer number")
+                            
+                            except:
+                                print("Nuevo nombre: " + newname)
+                                self.item.id = newname
+                        else:
+                            Tk().wm_withdraw()
+                            messagebox.showerror("ERROR", "New name can only have a maximum length of 10")
                         
                 elif button.border == white:
                     if isinstance(self.item, Node):
@@ -734,10 +756,14 @@ def DesignMode(): # Screen where someone can design a model
                             if active1:
                             
                                 if (abs(pos1[0]-pos[0]) > abs(pos1[1]-pos[1])):
-                                    pos = (pos[0],pos1[1])
+                                    newpos = calculateLocation(pos)
+                                    pos = (pos[0],newpos[1])
+                                    pos1 = (pos1[0],newpos[1])
                                 else:
-                                    pos = (pos1[0],pos[1])
-                                print(pos)
+                                    newpos = calculateLocation(pos)
+                                    pos = (newpos[0],pos[1])
+                                    pos1 = (newpos[0],pos1[1])
+                                
                                 
                                 C_list.add_line(Cable_line(pos1,pos)) 
                                 
@@ -796,17 +822,11 @@ def DesignMode(): # Screen where someone can design a model
     #background
     screen.fill(white)
     
-  
-    
     #variables
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
-    
-    
-   
-    draw_designmode()
 
-   
+    draw_designmode()
 
     if options.active:
         options.draw(screen)
@@ -888,6 +908,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                         resistance_S.empty()
                         power_S.empty()
                         graph.empty()
+                        node_s.empty()
                         C_list.empty()
                         justSaved = False
                         counterSave = 0
@@ -908,8 +929,11 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "import":
                 Tk().wm_withdraw()
                 if messagebox.askyesno("SAVED PROJECTS", "Do you want to load " + toLoad.split(".")[0] + "?"):
-                    project = ReadProject(toLoad)
-                    print(project)
+                    project = LoadProject(toLoad)
+                    namePro = toLoad
+                    counterSave = 1
+                    ScreenNum = 1
+                    justSaved = True
 
             elif action == "new":
                 TkinterSaved()
@@ -973,8 +997,66 @@ def ReadProject(project):
     read = open(route)
     content = read.readlines()
     read.close()
+    
+
     return content
 
+
+def LoadProject(project):
+    route = "./savedProjects/" + project
+    read = open(route)
+    content = read.readlines()
+    print(content)
+    
+    for line in content:
+        line = line.split("|")
+        line[-1] = line[-1].split("\n")[0]
+        print(line)
+        if line != None:
+            if line[0] == "res":
+                create_Res(line)
+            elif line[0] == "power":
+                create_Pow(line)
+            elif line[0] == "cable":
+                create_Cable(line)
+            else:
+                create_Node(line)  
+           
+    read.close()
+    
+
+def create_Res(content):
+    
+    tmp = Resistance(content[1],int(content[2]),int(content[3]))
+    resistance_S.add(tmp)
+    all_sprites.add(tmp)
+    tmp.set_Res(int(content[5]))
+    tmp.id = content[1]
+    if content[4] == "1": 
+        tmp.rotate()
+
+
+def create_Pow(content):
+    
+    tmp = Power_Output(int(content[2]),int(content[3]))
+    power_S.add(tmp)
+    all_sprites.add(tmp)
+    tmp.id = content[1]
+    tmp.Voltaje = int(content[5])
+
+    if content[4] == "1":
+        tmp.rotate()
+
+def create_Cable(content):
+    
+    C_list.add_line(Cable_line((int(content[2]),int(content[3])),(int(content[4]),int(content[5])))) 
+
+def create_Node(content):
+
+    tmp = Node(int(content[2]),int(content[3]),content[1])
+    node_S.add(tmp)
+    all_sprites.add(tmp)
+    
 def SeparateContent(data):
     data = data[0].split("{")
     return data
@@ -1022,8 +1104,11 @@ def SaveAll():
             savefile.writelines(tmp+"\n")
 
         for cable in C_list.get_list():
-            tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1)+'|'+str(cable.pos2)+"|"+str(cable.rotation)
+            tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1[0])+'|'+str(cable.pos1[1])+'|'+str(cable.pos2[0])+"|"+str(cable.pos2[1])
             savefile.writelines(tmp+"\n")
+
+        tmp  = graph.v
+        savefile.writelines("graph"+"|"+str(tmp))
 
 def SaveProject():
     global justSaved, counterSave, namePro
@@ -1031,13 +1116,31 @@ def SaveProject():
     if counterSave == 0:
         Tk().wm_withdraw()        
         newname = simpledialog.askstring("ReValue","Please enter new Name for your savefile")
-        if newname != None:
-            namePro = newname + ".txt"
-            SaveAll()
-            counterSave += 1
-            WriteNewSaved(namePro)
+        if newname != None and len(newname) <= 15:
+            if CheckName(newname) == False:
+                namePro = newname + ".txt"
+                SaveAll()
+                counterSave += 1
+                WriteNewSaved(namePro)
+            else:
+                Tk().wm_withdraw() 
+                messagebox.showerror("ERROR", "The file's name is already used")
+        else:
+           Tk().wm_withdraw() 
+           messagebox.showerror("ERROR", "The file's name can have a maximum length of 15")
+           newname = ""
+           justSaved = False
     else:
         SaveAll()
+
+def CheckName(name):
+    name += ".txt"
+    route = "./savedProjects"
+    files = os.listdir(route)
+    if name in files:
+        return True
+    else:
+        return False
 
 ######## ORDERING ALGORITHMS ########
 def QuickSort(array): #Descending
