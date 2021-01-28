@@ -9,7 +9,7 @@ import time
 def HaceLista5000():
      lista = []
      contador = 0
-     while contador <= 5000 :
+     while contador <= 100 :
           lista += [random.randrange(0, 10000)]
           contador += 1
 
@@ -81,6 +81,36 @@ def QuickSort(lista):
             # Se "settea" un valor, no es necesario que sea el primer elemento de la lista.
             # El pivote es el elemento en la posición asignada, en este caso, en la posición cero.
             pivote = lista[0]
+     
+
+            #Se pasa por cada elemento de la lista por medio de recursividad y se ordena.
+            for i in lista:
+                if i > pivote:
+                    mayor.append(i)
+                if i == pivote:
+                    igual.append(i)
+                if i < pivote:
+                    menor.append(i)
+
+            #Se retorna y se llama de forma recursiva a la función para que ordene la lista de menor a mayor
+            return QuickSort(mayor)+igual+QuickSort(menor)
+        else:
+            return lista
+    else:
+        return "Ingrese una lista válida"
+
+def QuickSortCORRECT(lista):
+    if isinstance(lista,list):
+        # se definen tres listas
+        menor = []
+        igual = []
+        mayor = []
+
+        # Se define la función del caso en que la lista es mayor a 1
+        if len(lista) > 1:
+            # Se "settea" un valor, no es necesario que sea el primer elemento de la lista.
+            # El pivote es el elemento en la posición asignada, en este caso, en la posición cero.
+            pivote = lista[0]
 
             #Se pasa por cada elemento de la lista por medio de recursividad y se ordena.
             for i in lista:
@@ -92,7 +122,7 @@ def QuickSort(lista):
                     mayor.append(i)
 
             #Se retorna y se llama de forma recursiva a la función para que ordene la lista de menor a mayor
-            return QuickSort(menor)+igual+QuickSort(mayor)
+            return QuickSortCORRECT(menor)+igual+QuickSortCORRECT(mayor)
         else:
             return lista
     else:
@@ -110,6 +140,7 @@ def BubbleSort(lista):
                          lista[j+1] = aux
 
           return lista
+     
 
      else:
           return "Pongase serio mi raico, coloque una lista válida"

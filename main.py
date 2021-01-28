@@ -5,23 +5,27 @@ import time
 import random
 from tkinter import *
 from tkinter import messagebox
+from tkinter import simpledialog
 import os
 
+#Init pygame engine
 pygame.init()
 
 #Global variables
-
-
-
 s_width = 1200
 s_height = 700
 screen = pygame.display.set_mode((s_width,s_height))
 click = pygame.mouse.get_pressed()
 ScreenNum = 0
 tkActive = False
+justSaved = False
+counterSave = 0
+namePro = ""
 
 saved = []
 
+
+#Image route
 img_dir = os.path.join(os.path.dirname(__file__),'imgs')
 
 def cargar_img(nombre):
@@ -45,6 +49,7 @@ pow_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("fuente_p
 pow_imageB = pygame.transform.scale(cargar_img("fuente_poder.png"),(100,60))
 
 node_image = pygame.transform.scale(cargar_img("node.png"),(45,45))
+
 #SpriteGroups
 
 all_sprites = pygame.sprite.Group()
@@ -79,7 +84,8 @@ def Menu(): #Menu screen
     global saved
     screen.fill(black)
 
-    Text(300, 10, 40, "What kind of circuit do you want to open?", white)
+    #Text(300, 10, 40, "What kind of circuit do you want to open?", white)
+    
 
     TextButton("CREATE NEW", 400, 60, 120, 40, black, white, 30, 250, "design", True)
     #TextButton("CREATE FILE", 400, 100, 120, 40, black, white, 30, 250, "new", True)
@@ -128,7 +134,10 @@ class Graph:
             to = str(to) + str(self.i)
             self.i += 1
         self.v[frm].update({to: res.get_Res()})
-        
+    
+    def empty(self):
+        self.v.clear()
+
 class Node(pygame.sprite.Sprite):
 
     def __init__(self,x,y, idn):
@@ -141,6 +150,8 @@ class Node(pygame.sprite.Sprite):
         self.rect.center = (self.x, self.y)
         self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
+        self.type = "node"
+        self.rotation = None
 
     def over(self, pos):
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
@@ -190,6 +201,7 @@ class Power_Output(pygame.sprite.Sprite):
 
         self.id = "V"+str(len(power_S))
         self.Voltaje = 5
+        self.type = "power"
 
     def over(self, pos):
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
@@ -220,15 +232,21 @@ class Power_Output(pygame.sprite.Sprite):
             time.sleep(0.3)
 
     def show_data(self):
-        
-        
-
+    
         if self.image == pow_image2:
             PrintText(self.rect.topleft[0],self.rect.topleft[1]-50,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
         else:
             PrintText(self.rect.center[0]-20,self.y-70,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
 
+    def get_rotation(self):
+        if self.image == pow_image:
+            return 0
+        else:
+            return 1
 
+    def get_Voltaje(self):
+        return self.Voltaje
+             
 class Resistance(pygame.sprite.Sprite):
     
     def __init__(self, idr, x, y):
@@ -245,6 +263,7 @@ class Resistance(pygame.sprite.Sprite):
         self.res = 100
         self.id = "R" + str(idr)
         self.connectedto = None
+        self.type = "res"
         
     def over(self, pos):
         
@@ -272,7 +291,12 @@ class Resistance(pygame.sprite.Sprite):
             options.active = False
             time.sleep(0.3)
 
-        
+    def get_rotation(self):
+        if self.image == res_image1:
+            return 0
+        else:
+            return 1
+            
     def get_Res(self):
         return self.res
     
@@ -431,7 +455,13 @@ class ElementOptions():
                         self.item.rotate()
                     
                 elif button.border == red:
-                    pass
+                    Tk().wm_withdraw()
+                    
+                    newname = simpledialog.askstring("Rename","Please enter new name")
+                    if newname != None:
+                        print("Nuevo nombre: " + newname)
+                        self.item.id = newname
+                        
                 elif button.border == white:
                     if isinstance(self.item, Node):
                         pass
@@ -440,8 +470,15 @@ class ElementOptions():
 
                     self.active = False
                 elif button.border == gray:
-                    pass
-
+                    Tk().wm_withdraw()
+                    
+                    newvalue = simpledialog.askinteger("ReValue","Please enter new Value")
+                    if newvalue != None:
+                        print("Nuevo Valor: " + str(newvalue))
+                        if isinstance(self.item, Resistance):
+                            self.item.res = newvalue
+                        else:
+                            self.item.Voltaje = newvalue
                 elif button.border == green:
                     print("Connecting nodes 1")
                     connect_nodes(self.item)
@@ -479,6 +516,9 @@ class Cable_line():
     def __init__(self,pos1,pos2):
         self.pos1 = pos1
         self.pos2 = pos2
+        self.type = "cable"
+        self.id = None
+        self.rotation = None
         
     
     def draw(self):
@@ -496,6 +536,9 @@ class Cable_list():
 
     def add_line(self,line):
         self.list.append(line)
+        
+    def empty(self):
+        self.list = []
 
 def drawlines():
 
@@ -511,8 +554,8 @@ def drawlines():
         position += 70
 
     pygame.draw.line(screen,black,(0,590), (s_width-220,590),1)
-    pygame.draw.rect(screen,darkGray,(s_width-200,0,200,s_height),0)
     pygame.draw.rect(screen,darkGray,(0,s_height-105,s_width,105),0)
+    pygame.draw.rect(screen,(52, 54, 48),(s_width-200,0,200,s_height),0)
     
     for line in C_list.get_list():
         line.draw()
@@ -520,11 +563,11 @@ def drawlines():
 
 
 #element buttons
-resi_B = Element_Button(gray,s_width-155,120,110,60,black,res_image1)
-power_B = Element_Button(gray,s_width-155,210,110,60,black,pow_imageB)  
+resi_B = Element_Button(gray,s_width-155,100,110,60,black,res_image1)
+power_B = Element_Button(gray,s_width-155,190,110,60,black,pow_imageB)  
 options = ElementOptions()
-cable_B = Element_Button(gray,s_width-155,300,110,60,black,pow_imageB)  
-Node_B = Element_Button(gray,s_width-155,390,110,60,black,node_image)
+cable_B = Element_Button(gray,s_width-155,280,110,60,black,pow_imageB)  
+Node_B = Element_Button(gray,s_width-155,370,110,60,black,node_image)
 
 #constants
 C_list = Cable_list()
@@ -544,6 +587,16 @@ def draw_designmode():
     cable_B.line_B()
     Node_B.draw(screen,False,True)
     all_sprites.draw(screen)
+
+    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
+    TextButton("Simulate", s_width-170, 20, 120, 40, black, white, 30, 20, "simulation", True)
+    TextButton("Reset Graph", s_width-170, 470, 120, 40, black, white, 30, 20, "resetG", True)
+    TextButton("Reset Cables", s_width-170, 540, 120, 40, black, white, 30, 20, "resetC", True)
+    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True)
+   
+
+
+
 
 def connect_nodes(node1):
     print("Connecting nodes 2")
@@ -608,6 +661,7 @@ def calculateLocation(pos):
 def DesignMode(): # Screen where someone can design a model
     
     def select_element(pos):
+        global justSaved
         selecting = False
         typeE = 0
 
@@ -641,7 +695,7 @@ def DesignMode(): # Screen where someone can design a model
 
         while selecting:
             screen.fill(white)
-            TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
+            
 
             
 
@@ -665,6 +719,7 @@ def DesignMode(): # Screen where someone can design a model
                             selecting = False
                             resi_B.unhighlight(True)
                             time.sleep(0.3)
+                            justSaved = False
 
                         elif typeE == 2:
                             poscal = calculateLocation(pos)
@@ -673,6 +728,7 @@ def DesignMode(): # Screen where someone can design a model
                             all_sprites.add(tmp)
                             selecting = False
                             power_B.unhighlight(True)
+                            justSaved = False
 
                         elif typeE == 3:
                             if active1:
@@ -688,12 +744,14 @@ def DesignMode(): # Screen where someone can design a model
                                 cable_B.unhighlight(False)
                                 selecting = False
                                 active1 = False
+                                justSaved = False
 
                             
                             else:
                                 active1 = True
-                                pos1 = (calculateLocation(pos)[0],pos[1])
+                                pos1 = (pos[0],pos[1])
                                 print(pos1)
+                                justSaved = False
 
                         elif typeE == 4:
                             poscal = calculateLocation(pos)
@@ -702,6 +760,7 @@ def DesignMode(): # Screen where someone can design a model
                             all_sprites.add(tmp)
                             selecting = False
                             Node_B.unhighlight(True)
+                            justSaved = False
 
 
                     elif resi_B.over(pos):
@@ -743,10 +802,11 @@ def DesignMode(): # Screen where someone can design a model
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
     
-    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
-
+    
    
     draw_designmode()
+
+   
 
     if options.active:
         options.draw(screen)
@@ -782,17 +842,7 @@ def DesignMode(): # Screen where someone can design a model
 
     
 
-"""
-with open(file, 'w') as savefile:
-    tmp = ""
-    for res in resistance_S:
-        tmp = str(res.name)+'{'+str(res.id)+str(res.rect.centerx)+'{'+str(res.rect.centery)+"{"+str(res.rotation)
-        savefile.writelines(tmp+"\n")
-    
-    for pow in power_S:
-        tmp = str(res.name)+'{'+str(res.id)+str(res.rect.centerx)+'{'+str(res.rect.centery)+"{"+str(res.rotation)
-        savefile.writelines(tmp+"\n")
-"""
+
 def Simulationmode():
     pass
 
@@ -833,7 +883,7 @@ def Button(x, ys, wid, hei, image,fill, action = None):#function to create a but
     screen.blit(image, (x, ys))
 
 def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None):
-    global ScreenNum, saved
+    global ScreenNum, saved, justSaved, counterSave, namePro
     color = ActiveColor
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
@@ -853,13 +903,25 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                 ScreenNum = 1
 
             elif action == "menu":
-                
-                Tk().wm_withdraw()
-                if messagebox.askyesno("SAVED PROJECTS", "Do you want to Exit without saving "  + "?"):
+                if not justSaved:
+                    Tk().wm_withdraw()
+                    if messagebox.askyesno("SAVED PROJECTS", "Do you want to Exit without saving "  + "?"):
+                        all_sprites.empty()
+                        resistance_S.empty()
+                        power_S.empty()
+                        graph.empty()
+                        C_list.empty()
+                        justSaved = False
+                        counterSave = 0
+                        namePro = ""
+
+                else:
+                    ScreenNum = 0
                     all_sprites.empty()
                     resistance_S.empty()
                     power_S.empty()
-                    ScreenNum = 0
+                    graph.empty()
+                    C_list.empty()
                 
 
             elif action == "import":
@@ -871,7 +933,28 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "new":
                 TkinterSaved()
                 
-        
+            elif action == "save":
+                Tk().wm_withdraw()
+                if messagebox.askyesno("SAVE", "Do you want to save?"):
+                    SaveProject()
+
+            elif action == "simulations":
+                pass
+
+            elif action == "resetG":
+                Tk().wm_withdraw()
+                if messagebox.askyesno("RESET GRAPH", "Do you want to reset the Graph?"):
+                    graph.empty()
+
+
+            elif action == "resetC":
+                Tk().wm_withdraw()
+                if messagebox.askyesno("RESET CABLES", "Do you want to reset the Cables?"):
+                    C_list.empty()
+                
+
+
+
         elif click[2] == 1:
             if action == "import":
                 Tk().wm_withdraw()
@@ -891,12 +974,11 @@ def Text(x, y, size, text, color):
     text = font.render(text, True, color)
     screen.blit(text, (x,y))
 
-def WriteNewSaved(name, data): #writes info to then load a project
+def WriteNewSaved(name): #writes info to then load a project
     route = "./savedProjects/savedProjects.txt"
     registry = open(route, "a")
     registry.write(name + "{")
     registry.close()
-    WriteProject(data, name)
 
 def WriteProject(data, name):
     global tkActive
@@ -942,6 +1024,73 @@ def DeleteFile(name):
             temp += elem + "{"
         print(temp)
         file.write(temp)
+
+def SaveProject():
+    global justSaved, counterSave, namePro
+    justSaved = True
+    if counterSave == 0:
+        Tk().wm_withdraw()        
+        newname = simpledialog.askstring("ReValue","Please enter new Name for your savefile")
+        if newname != None:
+            namePro = newname + ".txt"
+    with open("./savedProjects/" + namePro, 'w') as savefile:
+        tmp = ""
+        for res in resistance_S:
+            tmp = str(res.type)+'|'+str(res.id)+'|'+str(res.rect.centerx)+'|'+str(res.rect.centery)+"|"+str(res.get_rotation()) + "|"+ str(res.get_Res())
+            savefile.writelines(tmp+"\n")
+        
+        for powe in power_S:
+            tmp = str(powe.type)+'|'+str(powe.id)+ '|' + str(powe.rect.centerx)+'|'+str(powe.rect.centery)+"|"+str(powe.get_rotation()) +"|"+ str(powe.get_Voltaje())
+            savefile.writelines(tmp+"\n")
+
+        for node in node_S:
+            tmp = str(node.type)+'|'+str(node.id)+'|'+str(node.rect.centerx)+'|'+str(node.rect.centery)+"|"+str(node.rotation)
+            savefile.writelines(tmp+"\n")
+
+        for cable in C_list.get_list():
+            tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1)+'|'+str(cable.pos2)+"|"+str(cable.rotation)
+            savefile.writelines(tmp+"\n")
+    
+    if counterSave == 0:
+        counterSave += 1
+        WriteNewSaved(namePro)
+
+######## ORDERING ALGORITHMS ########
+def QuickSort(array): #Descending
+    minor = []
+    equal = []
+    major = []
+
+    if len(array) > 1:
+        pivote = array[0]
+
+        for i in array:
+            if i > pivote:
+                major.append(i)
+            if i == pivote:
+                equal.append(i)
+            if i < pivote:
+                minor.append(i)
+
+        return QuickSort(major) + equal + QuickSort(minor)
+    
+    else:
+        return array
+
+def InsertionSort(array):
+    length = len(array)
+
+    for i in range(1, length):
+        value = array[i]
+        pos = i
+
+        while pos > 0 and array[pos-1] > value:
+            array[pos] = array[pos-1]
+            pos -= 1
+
+        array[pos] = value
+
+    return array
 
 ######## MAIN LOOP ############                
 while True: 
