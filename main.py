@@ -21,7 +21,8 @@ tkActive = False
 justSaved = False
 counterSave = 0
 namePro = ""
-
+arrayToPrint = []
+FPS = pygame.time.Clock()
 saved = []
 
 
@@ -80,6 +81,7 @@ sandColor = (245, 194, 109)
 ultraDarkGreen = (2, 48, 0)
 strangeBlue = (0, 130, 139)
 oliveGreen = (161, 169, 106)
+greenPichudo = (54, 115, 84)
 
 
 #SCREENS
@@ -579,6 +581,21 @@ class Cable_list():
     def empty(self):
         self.list = []
 
+class dataHolder():
+    
+    def __init__(self):
+        self.path = ""
+        self.weight = "0"
+
+
+    def set_path(self,path):
+        self.path = path
+
+    def set_weight(self,weight):
+        self.weight = weight
+
+
+
 def drawlines(sim):
 
     if sim:
@@ -614,6 +631,7 @@ Node_B = Element_Button(gray,s_width-155,370,110,60,black,node_image)
 C_list = Cable_list()
 node_namer = NodeNamer()
 graph = Graph()
+dataH = dataHolder()
 
 
 #Posible locations
@@ -887,15 +905,27 @@ def DesignMode(): # Screen where someone can design a model
 
 
 def Draw_simulation():
+    global arrayTo, shortest_path
     drawlines(False)
     all_sprites.draw(screen)
-    pygame.draw.rect(screen,oliveGreen,(s_width-200,0,200,s_height),0)
-    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
-    TextButton("Design mode", s_width-170, 20, 120, 40, black, white, 30, 38, "design",True)
-    TextButton("Dijkstra", 20, s_height-80, 120, 40, black, white, 30, 38, "dijkstra",True)
+    pygame.draw.rect(screen, greenPichudo,(s_width-200,0,200,s_height),0)
+    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True, None, (58,76,83))
+    TextButton("Design mode", s_width-173, 20, 120, 40, black, white, 30, 38, "design",True, None, (58,76,83))
+    TextButton("Dijkstra", 20, s_height-80, 120, 40, black, white, 30, 38, "dijkstra",True, None, (58,76,83))
     Button(1130, 535, 30, 55, arrow_down, gray, arrow_downRed, "descendingOrder")
     Button(1050, 535, 30, 55, arrow_up, gray, arrow_upRed, "ascendingOrder")
+    pygame.draw.rect(screen,(159, 171, 166),(300,s_height-90,600,80),0)
+    pygame.draw.rect(screen, (159, 171, 166),(s_width-175,100,160,400),0)
+    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True, None,(58,76,83) )
+
+    Printdijsktra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)
+    Printdijsktra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)
+
+
+    if arrayToPrint != []:
+        PrintOrder(arrayToPrint)
     
+   
 
 def Simulationmode():
     
@@ -915,8 +945,12 @@ def Simulationmode():
             power.show_data()
 
 
+
+
+
+
 def dijkstra_nodes():
-   
+    
     node1 = None
     node2 = None
     selecting = True
@@ -935,26 +969,36 @@ def dijkstra_nodes():
                     for node in node_S:
                         if node.over(pos):
                             node1 = node.id
-                
+                            print(node.id)
                 else:
                     for node in node_S:
                         if node.over(pos):
                             node2 = node.id
                             selecting = False
-
+                            print(node.id)
+    
     dijkstra = Dijkstra(graph,node1,node2)
     shortest_path = " "
-    for p in dijkstra[0]:
-        shortest_path += p  + " → "
-        
+    i_path = 0
+    while i_path < len(dijkstra[1]) - 1:
+        shortest_path += dijkstra[1][i_path]  + "-> "
+        i_path += 1
+    shortest_path += dijkstra[1][i_path]
+
+    dataH.set_path(shortest_path)
+
     
-    PrintText(100,s_height-80,50,"Shortest Path:" + shortest_path,black)
-    PrintText(100,s_height-30,50,"Minimum Weight:" +  str(dijkstra[1]),black)
+        
+    dataH.set_weight(str(dijkstra[0]))
+    
+    
+    
+
     
 def Dijkstra(graph,start,goal):
     shortest_distance = {}
     predecessor = {}
-    unseenNodes = graph.v
+    unseenNodes = list(graph.v.keys())
     infinity = 999999
     path = []
     for node in unseenNodes:
@@ -972,7 +1016,7 @@ def Dijkstra(graph,start,goal):
             if weight + shortest_distance[minNode] < shortest_distance[childNode]:
                 shortest_distance[childNode] = weight + shortest_distance[minNode]
                 predecessor[childNode] = minNode
-        unseenNodes.pop(minNode)
+        unseenNodes.remove(minNode)
     
     currentNode = goal
     while currentNode != start:
@@ -981,6 +1025,7 @@ def Dijkstra(graph,start,goal):
             currentNode = predecessor[currentNode]
         except KeyError:
             print('Path not reachable')
+            shortest_distance[goal] = "Path not reachable"
             break
     path.insert(0,start)
     if shortest_distance[goal] != infinity:
@@ -991,7 +1036,7 @@ def Dijkstra(graph,start,goal):
     
 # Objects 
 def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to create a button
-    global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE
+    global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE, arrayToPrint
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
 
@@ -1008,20 +1053,20 @@ def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to crea
             if action == "ascendingOrder":
                 time.sleep(0.3)
                 if listaRes !=[]:
-                    InsertionSort(listaRes)
-                print(InsertionSort(listaRes))
+                    arrayToPrint = InsertionSort(listaRes)
+                    print(InsertionSort(listaRes))
 
             elif action == "descendingOrder":
                 time.sleep(0.3)
                 if listaRes != []:
-                    QuickSort(listaRes)
-                print(QuickSort(listaRes))
+                    arrayToPrint = QuickSort(listaRes)
+                    print(QuickSort(listaRes))
                 
         screen.blit(image2, (x, ys))
     else:
         screen.blit(image, (x, ys))
 
-def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None):
+def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None, rectColor = None):
     global ScreenNum, saved, justSaved, counterSave, namePro
     color = ActiveColor
     mouse = pygame.mouse.get_pos()# gets mouse position
@@ -1029,8 +1074,11 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
 
     width += extraSize
 
+    if rectColor == None:
+        rectColor = oliveGreen
+
     if OptionalRect:
-        pygame.draw.rect(screen, oliveGreen, [xpos, ypos, width, height])
+        pygame.draw.rect(screen, rectColor, [xpos, ypos, width, height])
 
     color = InactiveColor
     if xpos + width > mouse[0] > xpos and ypos + height > mouse[1] > ypos:
@@ -1041,6 +1089,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             if action == "design":
                 ScreenNum = 1
                 time.sleep(0.3)
+                arrayToPrint = []
 
             elif action == "menu":
                 if not justSaved:
@@ -1055,6 +1104,8 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                         justSaved = False
                         counterSave = 0
                         namePro = ""
+                        arrayToPrint = []
+                        ScreenNum = 0
 
                 else:
                     ScreenNum = 0
@@ -1066,6 +1117,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     justSaved = False
                     counterSave = 0
                     namePro = ""
+                    arrayToPrint = []
                 
 
             elif action == "import":
@@ -1088,6 +1140,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
             elif action == "simulations":
                 ScreenNum = 2
                 time.sleep(0.3)
+                arrayToPrint = []
 
             elif action == "resetG":
                 Tk().wm_withdraw()
@@ -1101,7 +1154,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     C_list.empty()
                 
             elif action == "dijkstra":
-                dijkstra_nodes():
+                dijkstra_nodes()
 
 
         elif click[2] == 1:
@@ -1116,9 +1169,14 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
 def PrintText(x, y, size, text, color, width = None, height = None):
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
-    if width == None and height == None:
-        screen.blit(text,(x,y))
+    
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
+
+
+def Printdijsktra(x,y,size,text,color):
+    font = pygame.font.SysFont("Teko", size)
+    text = font.render(text, True, color)
+    screen.blit(text, (x , y))
 
 def Text(x, y, size, text, color):
     font = pygame.font.SysFont("Teko", size)
@@ -1259,8 +1317,9 @@ def SaveAll():
             tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1[0])+'|'+str(cable.pos1[1])+'|'+str(cable.pos2[0])+"|"+str(cable.pos2[1])
             savefile.writelines(tmp+"\n")
 
-        tmp  = graph.v
-        savefile.writelines("graph"+"|"+str(tmp))
+        
+        
+        savefile.writelines("graph"+"|"+str(graph.v))
 
 def SaveProject():
     global justSaved, counterSave, namePro
@@ -1330,6 +1389,19 @@ def InsertionSort(array):
             array[pos] = value
 
         return array
+
+def PrintOrder(array):
+    global FPS
+    print("Entrando a imprimir")
+    xpos = 1030
+    ypos = 80
+    length = len(array)
+    counter = 0
+    while counter < length:
+        ypos += 25
+        Text(xpos, ypos, 20, array[counter], (58,76,83))
+        counter += 1
+
 
 ######## MAIN LOOP ############                
 while True: 

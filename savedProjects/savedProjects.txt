@@ -1,1 +1,1 @@
-Prueba1.txt{
+Prueba1.txt{PruebaRes.txt{MalChiste.txt{
