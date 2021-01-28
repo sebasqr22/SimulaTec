@@ -933,8 +933,8 @@ def Draw_simulation():
     pygame.draw.rect(screen, (159, 171, 166),(s_width-175,100,160,400),0)
     TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True, None,(58,76,83) )
 
-    Printdijsktra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)
-    Printdijsktra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)
+    Printdijkstra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)
+    Printdijkstra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)
 
 
     if arrayToPrint != []:
@@ -1196,7 +1196,7 @@ def PrintText(x, y, size, text, color, width = None, height = None):
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
 
 
-def Printdijsktra(x,y,size,text,color):
+def Printdijkstra(x,y,size,text,color):
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     screen.blit(text, (x , y))
