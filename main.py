@@ -49,6 +49,10 @@ pow_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("fuente_p
 pow_imageB = pygame.transform.scale(cargar_img("fuente_poder.png"),(100,60))
 
 node_image = pygame.transform.scale(cargar_img("node.png"),(45,45))
+arrow_up = cargar_img("flechaArriba.png")
+arrow_upRed = cargar_img("flechaArribaRed.png")
+arrow_down = cargar_img("flechaAbajo.png")
+arrow_downRed = cargar_img("flechaAbajoRed.png")
 
 #SpriteGroups
 
@@ -134,9 +138,12 @@ class Graph:
             to = str(to) + str(self.i)
             self.i += 1
         self.v[frm].update({to: res.get_Res()})
+        
     
     def empty(self):
         self.v.clear()
+
+
 
 class Node(pygame.sprite.Sprite):
 
@@ -152,6 +159,8 @@ class Node(pygame.sprite.Sprite):
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
         self.type = "node"
         self.rotation = None
+        self.Volataje = random.randint(0,10)
+        self.C = random.randint(0,1000)
 
     def over(self, pos):
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
@@ -167,6 +176,11 @@ class Node(pygame.sprite.Sprite):
 
     def show_data(self):
         PrintText(self.x+10,self.y-50,40,self.id ,blue,self.w,self.h)
+
+    def show_sim(self):
+        PrintText(self.x+30,self.y-50,40,self.id ,blue,self.w,self.h)
+        PrintText(self.x+30,self.y-20,40,str(self.Volataje)+" V" ,blue,self.w,self.h)
+        PrintText(self.x+30,self.y +10,40,str(self.C)+" mA" ,blue,self.w,self.h)
 
 class NodeNamer():
 
@@ -461,7 +475,7 @@ class ElementOptions():
 
         for button in fbuttons:
             if button.over(pos):
-                print("Clicked on a button")
+                
                 if button.border == black:
                     if  not isinstance(self.item, Node):
                         self.item.rotate()
@@ -482,15 +496,17 @@ class ElementOptions():
                                 self.item.id = newname
                         else:
                             Tk().wm_withdraw()
-                            messagebox.showerror("ERROR", "New name can only have a maximum length of 10")
+                            messagebox.showerror("ERROR", "New name can only have a maximum length of 10 characters")
                         
                 elif button.border == white:
                     if isinstance(self.item, Node):
-                        pass
-                    else:
-                        self.item.kill()
+                        graph.empty()
+                        
+                    
+                    self.item.kill()
 
                     self.active = False
+
                 elif button.border == gray:
                     Tk().wm_withdraw()
                     
@@ -501,6 +517,7 @@ class ElementOptions():
                             self.item.res = newvalue
                         else:
                             self.item.Voltaje = newvalue
+
                 elif button.border == green:
                     print("Connecting nodes 1")
                     connect_nodes(self.item)
@@ -562,20 +579,22 @@ class Cable_list():
     def empty(self):
         self.list = []
 
-def drawlines():
+def drawlines(sim):
 
-    position = 100
-    for i in range(1,8):
-        pygame.draw.line(screen,black,(0,position) , (s_width-220 ,position),1)
-        
-        position += 70
+    if sim:
+        position = 100
+        for i in range(1,8):
+            pygame.draw.line(screen,black,(0,position) , (s_width-220 ,position),1)
+            
+            position += 70
 
-    position = 70
-    for i in range(1,15):
-        pygame.draw.line(screen,black,(position,100) , (position,s_height-110),1)
-        position += 70
+        position = 70
+        for i in range(1,15):
+            pygame.draw.line(screen,black,(position,100) , (position,s_height-110),1)
+            position += 70
 
-    pygame.draw.line(screen,black,(0,590), (s_width-220,590),1)
+        pygame.draw.line(screen,black,(0,590), (s_width-220,590),1)
+
     pygame.draw.rect(screen,darkGray,(0,s_height-105,s_width,105),0)
     pygame.draw.rect(screen,(52, 54, 48),(s_width-200,0,200,s_height),0)
     
@@ -602,7 +621,7 @@ Xposible = [70, 140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840, 910]
 Yposible = [170, 240, 310, 380, 450, 520]
 
 def draw_designmode():
-    drawlines()
+    drawlines(True)
     resi_B.draw(screen,False,True)
     power_B.draw(screen,False, True)
     cable_B.draw(screen,False,False)
@@ -611,7 +630,7 @@ def draw_designmode():
     all_sprites.draw(screen)
 
     TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
-    TextButton("Simulate", s_width-170, 20, 120, 40, black, white, 30, 20, "simulation", True)
+    TextButton("Simulate", s_width-170, 20, 120, 40, black, white, 30, 20, "simulations", True)
     TextButton("Reset Graph", s_width-170, 470, 120, 40, black, white, 30, 20, "resetG", True)
     TextButton("Reset Cables", s_width-170, 540, 120, 40, black, white, 30, 20, "resetC", True)
     TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True)
@@ -621,12 +640,12 @@ def draw_designmode():
 
 
 def connect_nodes(node1):
-    print("Connecting nodes 2")
+    graph
+    
     selecting = True
     resactive = False
     resSelected = None
-    graph.add_Vertex(node1.id)
-
+    
     while selecting:
         pos = pygame.mouse.get_pos()
 
@@ -637,21 +656,29 @@ def connect_nodes(node1):
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not resactive:
+                    print("Res not active")
+                   
                     for resistance in resistance_S:
                         if resistance.over(pos):
                             resSelected = resistance
                             resactive = True
+                
+                    
+
+
                 else:
                     for node in node_S:
-                        if node.over(pos):
-                            graph.add_Vertex(node.id)
+                        if node.over(pos):                            
+                            if not(node1.id in graph.v):
+                                graph.add_Vertex(node1.id)  
+                            if not(node.id in graph.v):
+                                graph.add_Vertex(node.id)       
                             graph.add_Edge(node1.id,node.id,resSelected)
                             selecting = False
                             break
 
     print(graph.v)
                         
-
 
 
 def delete_node(node):
@@ -717,9 +744,6 @@ def DesignMode(): # Screen where someone can design a model
 
         while selecting:
             screen.fill(white)
-            
-
-            
 
             pos = pygame.mouse.get_pos()
 
@@ -860,25 +884,142 @@ def DesignMode(): # Screen where someone can design a model
 
         select_element(mouse) 
 
-def Simulationmode():
-    pass
 
+
+def Draw_simulation():
+    drawlines(False)
+    all_sprites.draw(screen)
+    pygame.draw.rect(screen,oliveGreen,(s_width-200,0,200,s_height),0)
+    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
+    TextButton("Design mode", s_width-170, 20, 120, 40, black, white, 30, 38, "design",True)
+    TextButton("Dijkstra", 20, s_height-80, 120, 40, black, white, 30, 38, "dijkstra",True)
+    Button(1130, 535, 30, 55, arrow_down, gray, arrow_downRed, "descendingOrder")
+    Button(1050, 535, 30, 55, arrow_up, gray, arrow_upRed, "ascendingOrder")
+    
+
+def Simulationmode():
+    
+    screen.fill(white)
+    Draw_simulation()
+    mouse = pygame.mouse.get_pos()
+    for node in node_S:
+        if node.over(mouse):
+            node.show_sim()
+
+    for resistance in resistance_S:
+        if resistance.over(mouse):
+            resistance.show_data()
+
+    for power in power_S:
+        if power.over(mouse):
+            power.show_data()
+
+
+def dijkstra_nodes():
    
+    node1 = None
+    node2 = None
+    selecting = True
+   
+    
+    while selecting:
+        pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()  
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if node1 == None:
+                    for node in node_S:
+                        if node.over(pos):
+                            node1 = node.id
+                
+                else:
+                    for node in node_S:
+                        if node.over(pos):
+                            node2 = node.id
+                            selecting = False
+
+    dijkstra = Dijkstra(graph,node1,node2)
+    shortest_path = " "
+    for p in dijkstra[0]:
+        shortest_path += p  + " → "
+        
+    
+    PrintText(100,s_height-80,50,"Shortest Path:" + shortest_path,black)
+    PrintText(100,s_height-30,50,"Minimum Weight:" +  str(dijkstra[1]),black)
+    
+def Dijkstra(graph,start,goal):
+    shortest_distance = {}
+    predecessor = {}
+    unseenNodes = graph.v
+    infinity = 999999
+    path = []
+    for node in unseenNodes:
+        shortest_distance[node] = infinity
+    shortest_distance[start] = 0
+    
+    while unseenNodes:
+        minNode = None
+        for node in unseenNodes:
+            if minNode is None:
+                minNode = node
+            elif shortest_distance[node] < shortest_distance[minNode]:
+                minNode = node
+        for childNode, weight in graph.v[minNode].items():
+            if weight + shortest_distance[minNode] < shortest_distance[childNode]:
+                shortest_distance[childNode] = weight + shortest_distance[minNode]
+                predecessor[childNode] = minNode
+        unseenNodes.pop(minNode)
+    
+    currentNode = goal
+    while currentNode != start:
+        try:
+            path.insert(0,currentNode)
+            currentNode = predecessor[currentNode]
+        except KeyError:
+            print('Path not reachable')
+            break
+    path.insert(0,start)
+    if shortest_distance[goal] != infinity:
+        print('Shortest distance is ' + str(shortest_distance[goal]))
+        print('And the path is ' + str(path))
+
+    return (shortest_distance[goal],path)
+    
 # Objects 
-def Button(x, ys, wid, hei, image,fill, action = None):#function to create a button
+def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to create a button
     global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE
     mouse = pygame.mouse.get_pos()# gets mouse position
     click = pygame.mouse.get_pressed()#to know if the mouse was pressed
 
+    #pygame.draw.rect(screen, fill, [x, ys, wid, hei])#if the mouse if above the image and creates a rectangle
+
     if x + wid > mouse[0] > x and ys + hei > mouse[1] > ys:
-        pygame.draw.rect(game, fill, [x, ys, wid, hei])#if the mouse if above the image and creates a rectangle
         if click[0] == 1 and action != None:
             active = False
+            listaRes = []
 
-        if action == "simulador":
-            pass
-    
-    screen.blit(image, (x, ys))
+            for resistance in resistance_S:
+                listaRes += [resistance.id]
+
+            if action == "ascendingOrder":
+                time.sleep(0.3)
+                if listaRes !=[]:
+                    InsertionSort(listaRes)
+                print(InsertionSort(listaRes))
+
+            elif action == "descendingOrder":
+                time.sleep(0.3)
+                if listaRes != []:
+                    QuickSort(listaRes)
+                print(QuickSort(listaRes))
+                
+        screen.blit(image2, (x, ys))
+    else:
+        screen.blit(image, (x, ys))
 
 def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None):
     global ScreenNum, saved, justSaved, counterSave, namePro
@@ -899,6 +1040,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
         if click[0] == 1:
             if action == "design":
                 ScreenNum = 1
+                time.sleep(0.3)
 
             elif action == "menu":
                 if not justSaved:
@@ -908,7 +1050,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                         resistance_S.empty()
                         power_S.empty()
                         graph.empty()
-                        node_s.empty()
+                        node_S.empty()
                         C_list.empty()
                         justSaved = False
                         counterSave = 0
@@ -944,7 +1086,8 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     SaveProject()
 
             elif action == "simulations":
-                pass
+                ScreenNum = 2
+                time.sleep(0.3)
 
             elif action == "resetG":
                 Tk().wm_withdraw()
@@ -957,7 +1100,8 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                 if messagebox.askyesno("RESET CABLES", "Do you want to reset the Cables?"):
                     C_list.empty()
                 
-
+            elif action == "dijkstra":
+                dijkstra_nodes():
 
 
         elif click[2] == 1:
@@ -972,6 +1116,8 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
 def PrintText(x, y, size, text, color, width = None, height = None):
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
+    if width == None and height == None:
+        screen.blit(text,(x,y))
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
 
 def Text(x, y, size, text, color):
@@ -1019,12 +1165,18 @@ def LoadProject(project):
                 create_Pow(line)
             elif line[0] == "cable":
                 create_Cable(line)
-            else:
+            elif line[0] == "node":
                 create_Node(line)  
+            elif line[0] == "graph":
+                create_graph(line)
            
     read.close()
     
+def create_graph(content):
 
+    dictionary = eval(content[1])
+    graph.v = dictionary
+    
 def create_Res(content):
     
     tmp = Resistance(content[1],int(content[2]),int(content[3]))
@@ -1127,7 +1279,7 @@ def SaveProject():
                 messagebox.showerror("ERROR", "The file's name is already used")
         else:
            Tk().wm_withdraw() 
-           messagebox.showerror("ERROR", "The file's name can have a maximum length of 15")
+           messagebox.showerror("ERROR", "The file's name can have a maximum length of 15 characters")
            newname = ""
            justSaved = False
     else:
@@ -1144,40 +1296,40 @@ def CheckName(name):
 
 ######## ORDERING ALGORITHMS ########
 def QuickSort(array): #Descending
-    minor = []
-    equal = []
-    major = []
+        minor = []
+        equal = []
+        major = []
 
-    if len(array) > 1:
-        pivote = array[0]
+        if len(array) > 1:
+            pivote = array[0]
 
-        for i in array:
-            if i > pivote:
-                major.append(i)
-            if i == pivote:
-                equal.append(i)
-            if i < pivote:
-                minor.append(i)
+            for i in array:
+                if i > pivote:
+                    major.append(i)
+                if i == pivote:
+                    equal.append(i)
+                if i < pivote:
+                    minor.append(i)
 
-        return QuickSort(major) + equal + QuickSort(minor)
-    
-    else:
-        return array
+            return QuickSort(major) + equal + QuickSort(minor)
+        
+        else:
+            return array
 
 def InsertionSort(array):
-    length = len(array)
+        length = len(array)
 
-    for i in range(1, length):
-        value = array[i]
-        pos = i
+        for i in range(1, length):
+            value = array[i]
+            pos = i
 
-        while pos > 0 and array[pos-1] > value:
-            array[pos] = array[pos-1]
-            pos -= 1
+            while pos > 0 and array[pos-1] > value:
+                array[pos] = array[pos-1]
+                pos -= 1
 
-        array[pos] = value
+            array[pos] = value
 
-    return array
+        return array
 
 ######## MAIN LOOP ############                
 while True: 
@@ -1195,8 +1347,7 @@ while True:
         DesignMode()
 
     elif ScreenNum == 2:
-        #ImportScreen()
-        pass
+        Simulationmode()
     
     pygame.display.update()
 
