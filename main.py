@@ -54,6 +54,7 @@ arrow_up = cargar_img("flechaArriba.png")
 arrow_upRed = cargar_img("flechaArribaRed.png")
 arrow_down = cargar_img("flechaAbajo.png")
 arrow_downRed = cargar_img("flechaAbajoRed.png")
+logo = cargar_img("simulatec.png")
 
 #SpriteGroups
 
@@ -88,12 +89,12 @@ greenPichudo = (54, 115, 84)
 
 def Menu(): #Menu screen
     global saved
-    screen.fill(black)
+    screen.fill((129, 138, 125))
 
     #Text(300, 10, 40, "What kind of circuit do you want to open?", white)
     
 
-    TextButton("CREATE NEW", 400, 60, 120, 40, black, white, 30, 250, "design", True)
+    TextButton("CREATE NEW", 65, 150, 120, 40, black, white, 30, 950, "design", True, None, ((58,76,83)))
     #TextButton("CREATE FILE", 400, 100, 120, 40, black, white, 30, 250, "new", True)
     projects =  ReadProject("savedProjects.txt")
     saved = SeparateContent(projects)
@@ -102,6 +103,8 @@ def Menu(): #Menu screen
     length = len(saved)
     counter = 0
     quantityCounter = 0
+
+    screen.blit(logo, (375, 10))
 
     Text(50, 260, 30, "IMPORTS:", white)
     if saved != []:
@@ -115,7 +118,7 @@ def Menu(): #Menu screen
                 quantityCounter = 0
             ypos += 50
 
-            TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 50, "import", True, saved[counter])
+            TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 50, "import", True, saved[counter], (58,76,83))
 
             counter += 1
             quantityCounter += 1

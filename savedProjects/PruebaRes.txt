@@ -1,6 +1,0 @@
-res|holang|700|240|0|100
-res|kathy|910|240|0|100
-res|pepe|420|310|0|100
-res|blou|770|450|0|100
-res|tu hermana|490|450|0|100
-graph|{}
