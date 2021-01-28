@@ -42,13 +42,16 @@ res_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("resisten
 
 pow_image = pygame.transform.scale(cargar_img("fuente_poder.png"),(200,110))
 pow_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("fuente_poder.png"),(200,110)),90) 
-pow_imageB =pygame.transform.scale(cargar_img("fuente_poder.png"),(100,60))
+pow_imageB = pygame.transform.scale(cargar_img("fuente_poder.png"),(100,60))
+
+node_image = pygame.transform.scale(cargar_img("node.png"),(45,45))
 #SpriteGroups
 
 all_sprites = pygame.sprite.Group()
 resistance_S = pygame.sprite.Group()
 power_S = pygame.sprite.Group()
-cable_S = pygame.sprite.Group()
+node_S = pygame.sprite.Group()
+
 
 
 
@@ -107,26 +110,70 @@ def Menu(): #Menu screen
 
     #TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
 
-class Element(pygame.sprite.Sprite):
+class Graph:
+    def __init__(self):
+        self.v = {}
+        self.size = 0
+        self.i = 1
 
-    def __init__(self, image, x, y):
+    def __iter__(self):
+        return iter(self.v.values())
+
+    def add_Vertex(self, name):
+        self.v[name] = {}
+        self.size += 1
+    
+    def add_Edge(self, frm, to, res):
+        if to in self.v[frm]:
+            to = str(to) + str(self.i)
+            self.i += 1
+        self.v[frm].update({to: res.get_Res()})
+        
+class Node(pygame.sprite.Sprite):
+
+    def __init__(self,x,y, idn):
         pygame.sprite.Sprite.__init__(self)
-
-        self.image = image
-        self.rect = self.image.get_rect()
+        self.id = idn
         self.x = x
         self.y = y
+        self.image = node_image
+        self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
-        self.w = self.image.get_height()
-        self.h = self.image.get_width()
-        
+        self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
+        self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
 
-    
     def over(self, pos):
-            if pos[0] > self.x and pos[0] < self.x + self.w:
-                if pos[1] > self.y and pos[1] < self.y + self.h:
-                    return True
-            return False   
+        if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
+            if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
+                return True
+        return False     
+
+    def check(self,pos):
+        if self.over(pos):
+            self.highlight(True)
+        else:
+            self.unhighlight(True)
+
+    def show_data(self):
+        PrintText(self.x+10,self.y-50,40,self.id ,blue,self.w,self.h)
+
+class NodeNamer():
+
+    def __init__(self):
+
+        self.letters = ['a', 'b', 'c', 'd', 'e', 'f', 
+                        'g', 'h', 'i', 'j', 'k', 'l', 
+                        'm', 'n', 'o', 'p', 'q', 'r', 
+                        's', 't', 'u', 'v', 'w', 'x', 
+                        'y', 'z']
+        self.i = 0
+
+    def get_name(self):
+        tmp = self.letters[self.i]
+        self.i += 1
+        return tmp
+
+
 
 class Power_Output(pygame.sprite.Sprite):
 
@@ -173,7 +220,13 @@ class Power_Output(pygame.sprite.Sprite):
             time.sleep(0.3)
 
     def show_data(self):
-        PrintText(self.x,self.y-30,20,self.id +":"+ str(self.Voltaje),blue,self.w,self.h)
+        
+        
+
+        if self.image == pow_image2:
+            PrintText(self.rect.topleft[0],self.rect.topleft[1]-50,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
+        else:
+            PrintText(self.rect.center[0]-20,self.y-70,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
 
 
 class Resistance(pygame.sprite.Sprite):
@@ -239,7 +292,10 @@ class Resistance(pygame.sprite.Sprite):
         self.connectedto = node
 
     def show_data(self):
-        PrintText(self.x,self.y-30,20,self.id +":"+ str(self.res),blue,self.w,self.h)
+        if self.image == res_image1:
+            PrintText(self.rect.topleft[0],self.rect.topleft[1]-30,30,self.id +" : "+ str(self.res)+ " Ω",blue,self.w,self.h)
+        else:
+            PrintText(self.rect.center[0]+self.w//2 + 40,self.y-50,30,self.id +" : "+ str(self.res)+ " Ω",blue,self.w,self.h)
 
 class Element_Button():
 
@@ -294,42 +350,102 @@ class Element_Button():
 class ElementOptions():
 
     def __init__(self):
-        """
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        """
-        self.buttons = [Element_Button(gray,600,530,110,40,black,res_image1),
-                        Element_Button(gray,600,580,110,40,red,res_image1), 
-                        Element_Button(gray,600,630,110,40,white,res_image1)]
-
-        self.text = ["Rotate", "Rename", "Delete"]
+        self.buttons = [Element_Button(gray,50,s_height-90,110,60,black,res_image1),
+                        Element_Button(gray,600,s_height-90,110,60,red,res_image1), 
+                        Element_Button(gray,600,s_height-90,110,60,white,res_image1)]
+        
+        self.respow_B = Element_Button(gray,600,s_height-90,110,60,gray,res_image1)
+        self.nodeC_B = Element_Button(gray,600,s_height-90,110,60,green,res_image1)
         self.item = None
         self.active = False
+        self.text = ["Rotate","Rename","Delete"]
 
     def draw(self,screen):
-
+        
+        xpos = 50
         i = 0
         for button in self.buttons:
+            
+            button.x = xpos
             button.draw(screen,False,False)
+
             if button.color == button.colorh:
-                PrintText(button.x,button.y,15,self.text[i],white,button.w,button.h)
+               
+                PrintText(button.x,button.y,30,self.text[i],white,button.w,button.h)
             else:
-                PrintText(button.x,button.y,15,self.text[i],black,button.w,button.h)
+            
+                PrintText(button.x,button.y,30,self.text[i],black,button.w,button.h)
+                
+
+           
             i += 1
+            xpos += 150
+
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
+            self.respow_B.x = xpos
+            self.respow_B.draw(screen,False,False)
+
+            if self.respow_B.color == self.respow_B.colorh:
+                   
+                PrintText(self.respow_B.x,self.respow_B.y,30,"Value",white,self.respow_B.w,self.respow_B.h)
+            else:
+            
+                PrintText(self.respow_B.x,self.respow_B.y,30,"Value",black,self.respow_B.w,self.respow_B.h)
+                
+            xpos += 150
+
+
+
+        if isinstance(self.item, Node):
+            self.nodeC_B.x = xpos
+            self.nodeC_B.draw(screen,False,False)
+
+            if self.nodeC_B.color == self.nodeC_B.colorh:
+                   
+                PrintText(self.nodeC_B.x,self.nodeC_B.y,30,"Connect",white,self.nodeC_B.w,self.nodeC_B.h)
+            else:
+            
+                PrintText(self.nodeC_B.x,self.nodeC_B.y,30,"Connect",black,self.nodeC_B.w,self.nodeC_B.h)
+            
+            xpos += 150
+            
+
 
     def overclick(self,pos):
-        
-        for button in self.buttons:
+        fbuttons =[]
+
+        for ele in self.buttons:
+            fbuttons += [ele]
+
+        if isinstance(self.item,Node):
+            fbuttons += [self.nodeC_B]
+
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
+            fbuttons += [self.respow_B]
+
+        for button in fbuttons:
             if button.over(pos):
+                print("Clicked on a button")
                 if button.border == black:
-                    self.item.rotate()
+                    if  not isinstance(self.item, Node):
+                        self.item.rotate()
+                    
                 elif button.border == red:
                     pass
                 elif button.border == white:
-                    self.item.kill()
+                    if isinstance(self.item, Node):
+                        pass
+                    else:
+                        self.item.kill()
+
                     self.active = False
+                elif button.border == gray:
+                    pass
+
+                elif button.border == green:
+                    print("Connecting nodes 1")
+                    connect_nodes(self.item)
+                    
             else:
                 self.active = False
 
@@ -342,22 +458,33 @@ class ElementOptions():
                 button.unhighlight(False)
                 self.draw(screen)
 
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
+            if self.respow_B.over(pos):
+                self.respow_B.highlight(False)
+                self.draw(screen)
+            else:
+                self.respow_B.unhighlight(False)
+                self.draw(screen)
+
+        if isinstance(self.item,Node):
+            if self.nodeC_B.over(pos):
+                self.nodeC_B.highlight(False)
+                self.draw(screen)
+            else:
+                self.nodeC_B.unhighlight(False)
+                self.draw(screen)
 
 class Cable_line():
 
     def __init__(self,pos1,pos2):
         self.pos1 = pos1
         self.pos2 = pos2
+        
     
     def draw(self):
         pygame.draw.line(screen,black, self.pos1 , self.pos2,5)
-
-    def over(self,pos):
-
-        if pos[0] > self.pos1[0] and pos[0] < self.pos2[0]:
-            if pos[1] > self.y and pos[1] < self.y + self.h:
-                return True
-        return False
+        
+    
 
 #Cable list
 class Cable_list():
@@ -389,19 +516,73 @@ def drawlines():
     
     for line in C_list.get_list():
         line.draw()
-    
+
+
 
 #element buttons
-resi_B = Element_Button(gray,50,s_height-90,110,60,black,res_image1)
-power_B = Element_Button(gray,230,s_height-90,110,60,black,pow_imageB)  
+resi_B = Element_Button(gray,s_width-155,120,110,60,black,res_image1)
+power_B = Element_Button(gray,s_width-155,210,110,60,black,pow_imageB)  
 options = ElementOptions()
-cable_B = Element_Button(gray,410,s_height-90,110,60,black,pow_imageB)  
+cable_B = Element_Button(gray,s_width-155,300,110,60,black,pow_imageB)  
+Node_B = Element_Button(gray,s_width-155,390,110,60,black,node_image)
 
-
+#constants
 C_list = Cable_list()
+node_namer = NodeNamer()
+graph = Graph()
+
+
 #Posible locations
 Xposible = [70, 140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840, 910]
 Yposible = [170, 240, 310, 380, 450, 520]
+
+def draw_designmode():
+    drawlines()
+    resi_B.draw(screen,False,True)
+    power_B.draw(screen,False, True)
+    cable_B.draw(screen,False,False)
+    cable_B.line_B()
+    Node_B.draw(screen,False,True)
+    all_sprites.draw(screen)
+
+def connect_nodes(node1):
+    print("Connecting nodes 2")
+    selecting = True
+    resactive = False
+    resSelected = None
+    graph.add_Vertex(node1.id)
+
+    while selecting:
+        pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()  
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not resactive:
+                    for resistance in resistance_S:
+                        if resistance.over(pos):
+                            resSelected = resistance
+                            resactive = True
+                else:
+                    for node in node_S:
+                        if node.over(pos):
+                            graph.add_Vertex(node.id)
+                            graph.add_Edge(node1.id,node.id,resSelected)
+                            selecting = False
+                            break
+
+    print(graph.v)
+                        
+
+
+
+def delete_node(node):
+    pass
+
+
 
 def calculateLocation(pos):
     posx = pos[0]
@@ -449,17 +630,20 @@ def DesignMode(): # Screen where someone can design a model
             cable_B.highlight(True)
             selecting = True
             typeE = 3
+
+        elif Node_B.over(pos):
+            Node_B.highlight(False)
+            selecting = True
+            typeE = 4
             
         active1 = False
-        active2 = False
         pos1 = (0,0)
-        pos2 = (0,0)
 
         while selecting:
             screen.fill(white)
             TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
 
-            drawlines()
+            
 
             pos = pygame.mouse.get_pos()
 
@@ -472,7 +656,7 @@ def DesignMode(): # Screen where someone can design a model
                     sys.exit()  
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if pos[1] < s_height-100:
+                    if pos[1] < s_height-100 and pos[0] < s_width-200:
                         if typeE == 1:
                             poscal = calculateLocation(pos)
                             tmp = Resistance(len(resistance_S),poscal[0],poscal[1])
@@ -491,37 +675,34 @@ def DesignMode(): # Screen where someone can design a model
                             power_B.unhighlight(True)
 
                         elif typeE == 3:
-                            if active2:
-                            #surface, color, x & y start, x & y end, width
-                                if (abs(pos2[0]-pos[0]) > abs(pos2[1]-pos[1])):
-                                    pos = (pos[0],pos2[1])
+                            if active1:
+                            
+                                if (abs(pos1[0]-pos[0]) > abs(pos1[1]-pos[1])):
+                                    pos = (pos[0],pos1[1])
                                 else:
-                                    pos = (pos2[0],pos[1])
+                                    pos = (pos1[0],pos[1])
                                 print(pos)
-                                tmp1 = pygame.draw.line(screen,black,pos1 , pos2,4)
-                                tmp2 = pygame.draw.line(screen,black,pos2 , pos,4)
-                                C_list.add_line(Cable_line(pos1,pos2)) 
-                                C_list.add_line(Cable_line(pos2,pos))
-                                active2 = False
+                                
+                                C_list.add_line(Cable_line(pos1,pos)) 
+                                
                                 cable_B.unhighlight(False)
                                 selecting = False
-
-                            elif active1:
                                 active1 = False
-                                active2 = True
-                                pos2 = pos
 
-                                if (abs(pos1[0]-pos2[0]) > abs(pos1[1]-pos2[1])):
-                                    pos2 = (pos2[0],pos1[1])
-                                else:
-                                    pos2 = (pos1[0],pos2[1])
-
-                                print(pos2)
+                            
                             else:
                                 active1 = True
-                                pos1 = pos
+                                pos1 = (calculateLocation(pos)[0],pos[1])
                                 print(pos1)
-                                
+
+                        elif typeE == 4:
+                            poscal = calculateLocation(pos)
+                            tmp = Node(poscal[0],poscal[1],node_namer.get_name())
+                            node_S.add(tmp)
+                            all_sprites.add(tmp)
+                            selecting = False
+                            Node_B.unhighlight(True)
+
 
                     elif resi_B.over(pos):
                         selecting = False
@@ -540,12 +721,15 @@ def DesignMode(): # Screen where someone can design a model
                         cable_B.unhighlight(False)
                         time.sleep(0.3)
                         break
+
+                    elif Node_B.over(pos):
+                        print("NodeB")
+                        selecting = False
+                        Node_B.unhighlight(False)
+                        time.sleep(0.3)
+                        break
                         
-            resi_B.draw(screen,False,True)
-            power_B.draw(screen,False, True)
-            cable_B.draw(screen,False,False)
-            cable_B.line_B()
-            all_sprites.draw(screen)
+            draw_designmode()
             pygame.display.update()
 
 ###########################################################################################################################      
@@ -553,7 +737,7 @@ def DesignMode(): # Screen where someone can design a model
     #background
     screen.fill(white)
     
-    drawlines()
+  
     
     #variables
     mouse = pygame.mouse.get_pos()# gets mouse position
@@ -561,10 +745,8 @@ def DesignMode(): # Screen where someone can design a model
     
     TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
 
-    resi_B.draw(screen,False,True)
-    power_B.draw(screen,False,True)
-    cable_B.draw(screen,False,False)
-    cable_B.line_B()
+   
+    draw_designmode()
 
     if options.active:
         options.draw(screen)
@@ -574,6 +756,7 @@ def DesignMode(): # Screen where someone can design a model
     resi_B.check(mouse)
     power_B.check(mouse)
     cable_B.check(mouse)
+    Node_B.check(mouse)
 
 
     if click[0]:
@@ -590,14 +773,14 @@ def DesignMode(): # Screen where someone can design a model
                 options.active = True
                 options.item = power
 
-        #for cable in C_list.get_list():
-            #if cable.over(mouse):
-                #options.active = True
-        
+        for node in node_S:
+            if node.over(mouse):
+                options.active = True
+                options.item = node
+
         select_element(mouse) 
 
-    #Draw all sprites
-    all_sprites.draw(screen)
+    
 
 """
 with open(file, 'w') as savefile:
