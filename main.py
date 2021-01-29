@@ -124,6 +124,8 @@ def Menu(): #Menu screen
 
             counter += 1
             quantityCounter += 1
+    else:
+        Text(50, 290, 30, "No saved projects :/", white)
 
     #TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
 
@@ -1137,6 +1139,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     power_S.empty()
                     graph.empty()
                     C_list.empty()
+                    node_S.empty()
                     justSaved = False
                     counterSave = 0
                     namePro = ""
@@ -1291,8 +1294,11 @@ def create_Node(content):
     all_sprites.add(tmp)
     
 def SeparateContent(data):
-    data = data[0].split("{")
-    return data
+    try:
+        data = data[0].split("{")
+        return data
+    except:
+        return []
 
 def DeleteFile(name):
     route = "./savedProjects"

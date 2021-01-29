@@ -1,0 +1,18 @@
+res|R0|490|240|0|100
+res|R1|840|380|0|100
+res|R2|630|310|1|100
+power|V0|280|310|0|5
+node|a|280|240|None
+node|b|630|240|None
+node|c|630|380|None
+cable|None|280|355|280|381
+cable|None|279|380|793|380
+cable|None|887|380|909|380
+cable|None|906|240|632|240
+cable|None|910|238|910|380
+cable|None|634|240|538|240
+cable|None|442|240|281|240
+cable|None|280|242|280|262
+cable|None|630|239|630|261
+cable|None|630|354|630|379
+graph|{'a': {'b': 100}, 'b': {'c': 100, 'c1': 100}, 'c': {}, 'c1': {}}
