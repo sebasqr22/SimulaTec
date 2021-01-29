@@ -42,14 +42,21 @@ def cargar_img(nombre):
 
 #Images
 background = cargar_img("wallpaper.jpg")
+
+#Imagenes de resistencias
 res_image1 = pygame.transform.scale(cargar_img("resistencia.png"),(100,30))
 res_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("resistencia.png"),(100,30)),90)  
 
+
+#Imagenes de fuente de poder
 pow_image = pygame.transform.scale(cargar_img("fuente_poder.png"),(200,110))
 pow_image2 = pygame.transform.rotate(pygame.transform.scale(cargar_img("fuente_poder.png"),(200,110)),90) 
 pow_imageB = pygame.transform.scale(cargar_img("fuente_poder.png"),(100,60))
 
+#imagen del nodo
 node_image = pygame.transform.scale(cargar_img("node.png"),(45,45))
+
+#Imagen de botones
 arrow_up = cargar_img("flechaArriba.png")
 arrow_upRed = cargar_img("flechaArribaRed.png")
 arrow_down = cargar_img("flechaAbajo.png")
@@ -59,13 +66,10 @@ check = cargar_img("check.png")
 xRed = cargar_img("xRed.png")
 
 #SpriteGroups
-
 all_sprites = pygame.sprite.Group()
 resistance_S = pygame.sprite.Group()
 power_S = pygame.sprite.Group()
 node_S = pygame.sprite.Group()
-
-
 
 
 #Colors
@@ -90,14 +94,14 @@ greenPichudo = (54, 115, 84)
 #SCREENS
 
 def Menu(): #Menu screen
+    #El la funcion que se encarga de dibujar y la logica del menu
     global saved
     screen.fill((129, 138, 125))
 
-    #Text(300, 10, 40, "What kind of circuit do you want to open?", white)
-    
-
+    #boton para crear nuevo file
     TextButton("CREATE NEW", 65, 150, 120, 40, black, white, 30, 950, "design", True, None, ((58,76,83)))
-    #TextButton("CREATE FILE", 400, 100, 120, 40, black, white, 30, 250, "new", True)
+    
+    #
     projects =  ReadProject("savedProjects.txt")
     saved = SeparateContent(projects)
     xpos = 50
@@ -109,6 +113,8 @@ def Menu(): #Menu screen
     screen.blit(logo, (375, 10))
 
     Text(50, 260, 30, "IMPORTS:", white)
+
+    #genera los butones de los files para poder cargar 
     if saved != []:
         while counter < length:
             if counter == (length-1):
@@ -120,6 +126,7 @@ def Menu(): #Menu screen
                 quantityCounter = 0
             ypos += 50
 
+            #boton del file
             TextButton(saved[counter].split(".")[0], xpos, ypos, 120, 40, black, white, 30, 50, "import", True, saved[counter], (58,76,83))
 
             counter += 1
@@ -127,10 +134,10 @@ def Menu(): #Menu screen
     else:
         Text(50, 290, 30, "No saved projects :/", white)
 
-    #TextButton("IMPORT", 750, 200, 120, 40, black, white, 30, 250, "import", True)
+    
 
-class Graph:
-    def __init__(self):
+class Graph: #Class to create the graph
+    def __init__(self):#constructor
         self.v = {}
         self.size = 0
         self.i = 1
@@ -138,12 +145,12 @@ class Graph:
     def __iter__(self):
         return iter(self.v.values())
 
-    def add_Vertex(self, name):
+    def add_Vertex(self, name):#method to add a vertex
         self.v[name] = {}
         self.size += 1
     
-    def add_Edge(self, frm, to, res):
-        if to in self.v[frm]:
+    def add_Edge(self, frm, to, res):#method to add a edge
+        if to in self.v[frm]:#Determinar si el nodo ya existe en el grafo
             to = str(to) + str(self.i)
             self.i += 1
             self.add_Vertex(to)
@@ -151,17 +158,17 @@ class Graph:
         self.v[frm].update({to: res.get_Res()})
         
     
-    def empty(self):
+    def empty(self):#method to clear all the graph
         self.v.clear()
 
 
 
-class Node(pygame.sprite.Sprite):
+class Node(pygame.sprite.Sprite):#Class to create nodes with pygame sprites
 
-    def __init__(self,x,y, idn):
-        pygame.sprite.Sprite.__init__(self)
-        self.id = idn
-        self.x = x
+    def __init__(self,x,y, idn):# main constructor
+        pygame.sprite.Sprite.__init__(self)#super constructor
+        self.id = idn 
+        self.x = x 
         self.y = y
         self.image = node_image
         self.rect = self.image.get_rect()
@@ -170,32 +177,32 @@ class Node(pygame.sprite.Sprite):
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
         self.type = "node"
         self.rotation = None
-        self.Volataje = random.randint(0,10)
+        self.Volataje = random.randint(0,10)#generacion de los valores random
         self.C = random.randint(0,1000)
 
-    def over(self, pos):
+    def over(self, pos):#method to check if mouse is over
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
             if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
                 return True
         return False     
 
-    def check(self,pos):
+    def check(self,pos):##method to check if a rectangle has to change its color
         if self.over(pos):
             self.highlight(True)
         else:
             self.unhighlight(True)
 
-    def show_data(self):
+    def show_data(self):#method to print data from node
         PrintText(self.x+10,self.y-50,40,self.id ,blue,self.w,self.h)
 
-    def show_sim(self):
+    def show_sim(self):#method to show information in simulation mode
         PrintText(self.x+30,self.y-50,40,self.id ,blue,self.w,self.h)
         PrintText(self.x+30,self.y-20,40,str(self.Volataje)+" V" ,blue,self.w,self.h)
         PrintText(self.x+30,self.y +10,40,str(self.C)+" mA" ,blue,self.w,self.h)
 
-class NodeNamer():
+class NodeNamer():#Class to create name to a node
 
-    def __init__(self):
+    def __init__(self):#main constructor
 
         self.letters = ['a', 'b', 'c', 'd', 'e', 'f', 
                         'g', 'h', 'i', 'j', 'k', 'l', 
@@ -204,7 +211,7 @@ class NodeNamer():
                         'y', 'z']
         self.i = 0
 
-    def get_name(self):
+    def get_name(self):##method to get name 
         if len(node_S) == 0:
             self.i = 0
 
@@ -219,10 +226,10 @@ class NodeNamer():
 
 
 
-class Power_Output(pygame.sprite.Sprite):
+class Power_Output(pygame.sprite.Sprite):#Class that create power outputs
 
-    def __init__(self,  x, y):
-        pygame.sprite.Sprite.__init__(self)
+    def __init__(self,  x, y):#Constructor
+        pygame.sprite.Sprite.__init__(self)#super constructor
         self.id = 1
         self.image = pow_image
         self.rect = self.image.get_rect()
@@ -236,16 +243,16 @@ class Power_Output(pygame.sprite.Sprite):
         self.Voltaje = 5
         self.type = "power"
 
-    def over(self, pos):
+    def over(self, pos):#Method that determines if the mouse over the object
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
             if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
                 return True
         return False  
 
-    def rotate(self):
+    def rotate(self):#Method that rotates the object
         print("Rotate")
-        if self.image == pow_image:
-            print("image1")
+        if self.image == pow_image:#Check what image the object has
+            #Redefinir los valores de la imagen
             self.image = pow_image2
             self.rect = self.image.get_rect()
             self.rect.center = (self.x, self.y)
@@ -256,7 +263,7 @@ class Power_Output(pygame.sprite.Sprite):
             justSaved = False
 
         else:
-            print("image1")
+            #Redefinir los valores de la imagen
             self.image = pow_image
             self.rect = self.image.get_rect()
             self.rect.center = (self.x, self.y)
@@ -266,26 +273,26 @@ class Power_Output(pygame.sprite.Sprite):
             time.sleep(0.3)
             justSaved = False
 
-    def show_data(self):
+    def show_data(self):#Method that shows the data of the object
     
-        if self.image == pow_image2:
+        if self.image == pow_image2:#detemrines where to place it depending on the rotation
             PrintText(self.rect.topleft[0],self.rect.topleft[1]-50,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
         else:
             PrintText(self.rect.center[0]-20,self.y-70,30,self.id +" : "+ str(self.Voltaje) + " V",blue,self.w,self.h)
 
-    def get_rotation(self):
+    def get_rotation(self):#Method that return a boolean value of rotation
         if self.image == pow_image:
             return 0
         else:
             return 1
 
-    def get_Voltaje(self):
+    def get_Voltaje(self):#Method that return the voltaje of the object
         return self.Voltaje
              
-class Resistance(pygame.sprite.Sprite):
+class Resistance(pygame.sprite.Sprite): #Class to create a resistance with pygame sprites
     
-    def __init__(self, idr, x, y):
-        pygame.sprite.Sprite.__init__(self)
+    def __init__(self, idr, x, y):#main constructor
+        pygame.sprite.Sprite.__init__(self)#Super constructor
         self.image = res_image1
         self.rect = self.image.get_rect()
         self.x = x
@@ -293,21 +300,19 @@ class Resistance(pygame.sprite.Sprite):
         self.rect.center = (self.x, self.y)
         self.w = abs(self.rect.topright[0]-self.rect.topleft[0])
         self.h = abs(self.rect.topright[1]-self.rect.bottomright[1])
-        
-        
         self.res = 100
         self.id = "R" + str(idr)
         self.connectedto = None
         self.type = "res"
         
-    def over(self, pos):
+    def over(self, pos):#method to check if mouse is over
         
         if pos[0] > self.x - self.w//2 and pos[0] < self.x + self.w//2:
             if pos[1] > self.y- self.h//2 and pos[1] < self.y + self.h//2:
                 return True
         return False  
 
-    def rotate(self):
+    def rotate(self):#method to rotate a resistance
         if self.image == res_image1:
             self.image = res_image2
             self.rect = self.image.get_rect()
@@ -328,37 +333,37 @@ class Resistance(pygame.sprite.Sprite):
             time.sleep(0.3)
             justSaved = False
 
-    def get_rotation(self):
+    def get_rotation(self): #method to get rotation of the resistance
         if self.image == res_image1:
             return 0
         else:
             return 1
             
-    def get_Res(self):
+    def get_Res(self):#method to get to resistance´s value
         return self.res
     
-    def set_Res(self, res):
+    def set_Res(self, res):#method to set a resistance´s value
         self.res = res
     
-    def get_Id(self):
+    def get_Id(self):#method to get resistance´s id
         return self.id
     
-    def set_Id(self, idr):
+    def set_Id(self, idr):# method to set resistance´s id
         self.id = id
     
-    def get_Connectedto(self):
+    def get_Connectedto(self):#method to get where is the resistance connected to
         return self.connectedto
     
-    def set_Connectedto(self, node):
+    def set_Connectedto(self, node):#method to set where is going to be the resistance connected to
         self.connectedto = node
 
-    def show_data(self):
+    def show_data(self):#method to show important data
         if self.image == res_image1:
             PrintText(self.rect.topleft[0],self.rect.topleft[1]-30,30,self.id +" : "+ str(self.res)+ " Ω",blue,self.w,self.h)
         else:
             PrintText(self.rect.center[0]+self.w//2 + 40,self.y-50,30,self.id +" : "+ str(self.res)+ " Ω",blue,self.w,self.h)
 
-class Element_Button():
+class Element_Button():#Class that creates the buttons for circuit elements
 
     def __init__(self,color,x,y,w,h,border, image):
         self.color = color
@@ -375,78 +380,78 @@ class Element_Button():
         self.h = h
         self.border = border
 
-    def draw(self,screen,outline,image):
+    def draw(self,screen,outline,image):# draws all the buttons
 
-        if outline:
+        if outline:#If the button has outline
             pygame.draw.rect(screen,self.border,(self.x-2,self.y-2,self.w+4,self.h+4),0)
         
+        #Button rect
         pygame.draw.rect(screen,self.color,(self.x,self.y,self.w,self.h),0)
 
-        if image:
+        if image:#if the button has an image 
             screen.blit(self.image,(self.x +(self.w//2 - self.rectw//2), self.y + (self.h//2 - self.recth//2)))
 
-    def line_B(self):
+    def line_B(self):#draw cable line
         pygame.draw.line(screen,black,(self.x+20, self.y+self.h//2), (self.x + self.w-20 , self.y+self.h//2),5)
         
             
-    def over(self,pos):
+    def over(self,pos):#method to check if mouse is over
         if pos[0] > self.x and pos[0] < self.x + self.w:
             if pos[1] > self.y and pos[1] < self.y + self.h:
                 return True
         return False
 
-    def highlight(self,image):
+    def highlight(self,image):#method that highlights the button
         self.color = self.colorh
         
 
-    def unhighlight(self,image):
+    def unhighlight(self,image):#method that unhighlights the button
         self.color = self.colorR
         
-    def check(self,pos):
+    def check(self,pos):#Methos that determines if the mouse is over the button and changes color
         if self.over(pos):
             self.highlight(True)
         else:
             self.unhighlight(True)
 
-class ElementOptions():
+class ElementOptions():#Class that generates the buttons of elements
 
     def __init__(self):
-        self.buttons = [Element_Button(gray,50,s_height-90,110,60,black,res_image1),
-                        Element_Button(gray,600,s_height-90,110,60,red,res_image1), 
-                        Element_Button(gray,600,s_height-90,110,60,white,res_image1)]
+        #list of all the buttons
+        self.buttons = [Element_Button(gray,50,s_height-90,110,60,black,res_image1),#Rotate
+                        Element_Button(gray,600,s_height-90,110,60,red,res_image1), #Rename
+                        Element_Button(gray,600,s_height-90,110,60,white,res_image1)]#Delete
         
-        self.respow_B = Element_Button(gray,600,s_height-90,110,60,gray,res_image1)
-        self.nodeC_B = Element_Button(gray,600,s_height-90,110,60,green,res_image1)
+        self.respow_B = Element_Button(gray,600,s_height-90,110,60,gray,res_image1)#Revalue
+        self.nodeC_B = Element_Button(gray,600,s_height-90,110,60,green,res_image1)#Connect
         self.item = None
         self.active = False
         self.text = ["Rotate","Rename","Delete"]
 
-    def draw(self,screen):
+    def draw(self,screen):#draws the buttons
         
         xpos = 50
         i = 0
-        for button in self.buttons:
+        for button in self.buttons:#Draws each button in the list 
             
-            button.x = xpos
+            button.x = xpos #Determines xpos
             button.draw(screen,False,False)
 
-            if button.color == button.colorh:
+            if button.color == button.colorh:#Highlights the text in the button
                
                 PrintText(button.x,button.y,30,self.text[i],white,button.w,button.h)
             else:
             
                 PrintText(button.x,button.y,30,self.text[i],black,button.w,button.h)
                 
-
-           
             i += 1
-            xpos += 150
+            xpos += 150 #add to the xpos
 
-        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):#Checks if the item is a resistance or powerout
             self.respow_B.x = xpos
             self.respow_B.draw(screen,False,False)
 
-            if self.respow_B.color == self.respow_B.colorh:
+            if self.respow_B.color == self.respow_B.colorh:#highlights the text
                    
                 PrintText(self.respow_B.x,self.respow_B.y,30,"Value",white,self.respow_B.w,self.respow_B.h)
             else:
@@ -456,12 +461,11 @@ class ElementOptions():
             xpos += 150
 
 
-
-        if isinstance(self.item, Node):
+        if isinstance(self.item, Node):#Checks if the item is a node
             self.nodeC_B.x = xpos
             self.nodeC_B.draw(screen,False,False)
 
-            if self.nodeC_B.color == self.nodeC_B.colorh:
+            if self.nodeC_B.color == self.nodeC_B.colorh:#highlights the text
                    
                 PrintText(self.nodeC_B.x,self.nodeC_B.y,30,"Connect",white,self.nodeC_B.w,self.nodeC_B.h)
             else:
@@ -472,27 +476,27 @@ class ElementOptions():
             
 
 
-    def overclick(self,pos):
+    def overclick(self,pos):#Determines if the button is clicked and does the action
         global justSaved
         fbuttons =[]
 
         for ele in self.buttons:
             fbuttons += [ele]
 
-        if isinstance(self.item,Node):
+        if isinstance(self.item,Node):#determines if its a node
             fbuttons += [self.nodeC_B]
 
-        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):#determines if its a node or a powerout
             fbuttons += [self.respow_B]
 
-        for button in fbuttons:
+        for button in fbuttons:#draws all buttons present
             if button.over(pos):
                 
-                if button.border == black:
+                if button.border == black:#Rotates the item
                     if  not isinstance(self.item, Node):
                         self.item.rotate()
                     
-                elif button.border == red:
+                elif button.border == red:#Renames the item
                     Tk().wm_withdraw()
                     
                     newname = simpledialog.askstring("Rename","Please enter new name")
@@ -510,18 +514,15 @@ class ElementOptions():
                             Tk().wm_withdraw()
                             messagebox.showerror("ERROR", "New name can only have a maximum length of 10 characters")
                         
-                elif button.border == white:
-                    if isinstance(self.item, Node):
+                elif button.border == white:#Deletes the item
+                    if isinstance(self.item, Node):#Cheks if its a node
                         graph.empty()
                         
-                    
                     self.item.kill()
-
                     self.active = False
-
                     justSaved = False
 
-                elif button.border == gray:
+                elif button.border == gray:#Revalues the item
                     Tk().wm_withdraw()
                     
                     newvalue = simpledialog.askinteger("ReValue","Please enter new Value")
@@ -539,8 +540,8 @@ class ElementOptions():
             else:
                 self.active = False
 
-    def over(self,pos):
-        for button in self.buttons:
+    def over(self,pos):#Checks if the button is selected
+        for button in self.buttons:#Checks every button
             if button.over(pos):
                 button.highlight(False)
                 self.draw(screen)
@@ -548,15 +549,15 @@ class ElementOptions():
                 button.unhighlight(False)
                 self.draw(screen)
 
-        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):
-            if self.respow_B.over(pos):
+        if isinstance(self.item,Resistance) or isinstance(self.item,Power_Output):#Determines if its a resitance or power
+            if self.respow_B.over(pos):#highlights
                 self.respow_B.highlight(False)
                 self.draw(screen)
             else:
                 self.respow_B.unhighlight(False)
                 self.draw(screen)
 
-        if isinstance(self.item,Node):
+        if isinstance(self.item,Node):#checks if its node 
             if self.nodeC_B.over(pos):
                 self.nodeC_B.highlight(False)
                 self.draw(screen)
@@ -564,9 +565,9 @@ class ElementOptions():
                 self.nodeC_B.unhighlight(False)
                 self.draw(screen)
 
-class Cable_line():
+class Cable_line(): #Class to draw cable
 
-    def __init__(self,pos1,pos2):
+    def __init__(self,pos1,pos2):#main constructor
         self.pos1 = pos1
         self.pos2 = pos2
         self.type = "cable"
@@ -574,51 +575,51 @@ class Cable_line():
         self.rotation = None
         
     
-    def draw(self):
+    def draw(self):#method to draw the cable
         pygame.draw.line(screen,black, self.pos1 , self.pos2,5)
         
     
 
 #Cable list
-class Cable_list():
-    def __init__(self):
+class Cable_list(): #Class to create a list of cables
+    def __init__(self): #Main constructor
         self.list = []
 
-    def get_list(self):
+    def get_list(self): #Method to get the list of cables
         return self.list
 
-    def add_line(self,line):
+    def add_line(self,line): #Method to add a new cable
         self.list.append(line)
         
-    def empty(self):
+    def empty(self): #Method to delete all existing cables
         self.list = []
 
-class dataHolder():
+class dataHolder(): #Class to hold the necessary Dijkstra info
     
-    def __init__(self):
+    def __init__(self): #Main constructor
         self.path = ""
         self.weight = "0"
 
 
-    def set_path(self,path):
+    def set_path(self,path): #Sets a path
         self.path = path
 
-    def set_weight(self,weight):
+    def set_weight(self,weight): #Sets weight
         self.weight = weight
 
 
 
-def drawlines(sim):
+def drawlines(sim): #Function that draws lines
 
-    if sim:
+    if sim:#determines if its sim mode or designmode
         position = 100
-        for i in range(1,8):
+        for i in range(1,8):#horizontal lines
             pygame.draw.line(screen,black,(0,position) , (s_width-220 ,position),1)
             
             position += 70
 
         position = 70
-        for i in range(1,15):
+        for i in range(1,15):#Vertical lines
             pygame.draw.line(screen,black,(position,100) , (position,s_height-110),1)
             position += 70
 
@@ -627,7 +628,7 @@ def drawlines(sim):
     pygame.draw.rect(screen,darkGray,(0,s_height-105,s_width,105),0)
     pygame.draw.rect(screen,(52, 54, 48),(s_width-200,0,200,s_height),0)
     
-    for line in C_list.get_list():
+    for line in C_list.get_list():#draws cables
         line.draw()
 
 
@@ -650,8 +651,9 @@ dataH = dataHolder()
 Xposible = [70, 140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840, 910]
 Yposible = [170, 240, 310, 380, 450, 520]
 
-def draw_designmode():
-    drawlines(True)
+def draw_designmode():# fuction to create the design mode screen
+    drawlines(True)#Calls lines
+    #buttons
     resi_B.draw(screen,False,True)
     power_B.draw(screen,False, True)
     cable_B.draw(screen,False,False)
@@ -659,13 +661,14 @@ def draw_designmode():
     Node_B.draw(screen,False,True)
     all_sprites.draw(screen)
 
-    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)
-    TextButton("Simulate", s_width-170, 20, 120, 40, black, white, 30, 20, "simulations", True)
-    TextButton("Reset Graph", s_width-170, 470, 120, 40, black, white, 30, 20, "resetG", True)
-    TextButton("Reset Cables", s_width-170, 540, 120, 40, black, white, 30, 20, "resetC", True)
-    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True)
+    #buttons
+    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True)#Menu
+    TextButton("Simulate", s_width-170, 20, 120, 40, black, white, 30, 20, "simulations", True)#Simulate
+    TextButton("Reset Graph", s_width-170, 470, 120, 40, black, white, 30, 20, "resetG", True)#Reset graph
+    TextButton("Reset Cables", s_width-170, 540, 120, 40, black, white, 30, 20, "resetC", True)#Reset cables
+    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True)#Save
 
-    if justSaved:
+    if justSaved:#Checks if the document is saved
         screen.blit(check, (940, 10))
     
     else:
@@ -674,54 +677,42 @@ def draw_designmode():
     if namePro != "":
         Text(s_width//2 - 170, 20, 60, namePro.split(".")[0], black)
    
-def connect_nodes(node1):
-    
-    
+def connect_nodes(node1):#Fuction to connect the nodes
     selecting = True
     resactive = False
     resSelected = None
     
-    while selecting:
-        pos = pygame.mouse.get_pos()
+    while selecting: #If its selecting the while continues
+        pos = pygame.mouse.get_pos()#gets mouse pos
 
-        for event in pygame.event.get():
+        for event in pygame.event.get():#checks events in pygame
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()  
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if not resactive:
-                    print("Res not active")
+            if event.type == pygame.MOUSEBUTTONDOWN:#checks if a click
+
+                if not resactive:#If a resistance is not selected
                    
-                    for resistance in resistance_S:
+                    for resistance in resistance_S:#checks if you click a resistance
                         if resistance.over(pos):
                             resSelected = resistance
                             resactive = True
-                
-                    
-
-
-                else:
-                    for node in node_S:
+            
+                else:#when a resistance is selected
+                    for node in node_S:#for each node it checks
                         if node.over(pos):                            
-                            if not(node1.id in graph.v):
+                            if not(node1.id in graph.v):#if the node exists
                                 graph.add_Vertex(node1.id)  
-                            if not(node.id in graph.v):
+                            if not(node.id in graph.v):#if the node exists
                                 graph.add_Vertex(node.id)       
                             graph.add_Edge(node1.id,node.id,resSelected)
                             selecting = False
                             break
 
-    print(graph.v)
-                        
+            
 
-
-def delete_node(node):
-    pass
-
-
-
-def calculateLocation(pos):
+def calculateLocation(pos):#Function to calculate location for objects
     posx = pos[0]
     posy = pos[1]
     minx = []
@@ -729,28 +720,29 @@ def calculateLocation(pos):
     finalx = 0
     finaly = 0
 
-    for distancex in Xposible:
+    for distancex in Xposible:#determines the a list of the values of posx-pos1
         minx.append(abs(pos[0]-distancex))
     
-    finalx = Xposible[minx.index(min(minx))]
+    finalx = Xposible[minx.index(min(minx))] #determines closest posible x in the grid
 
-    for distancey in Yposible:
+    for distancey in Yposible:#determines the a list of the values of posy-pos1
         miny.append(abs(pos[1]-distancey))
 
-    finaly = Yposible[miny.index(min(miny))]
+    finaly = Yposible[miny.index(min(miny))]#determines closest posible y in the grid
 
     return (finalx,finaly)
 
 
 def DesignMode(): # Screen where someone can design a model
     
-    def select_element(pos):
+    def select_element(pos):#places the element that client selected
         global justSaved
         selecting = False
         typeE = 0
 
         drag_element = None
-        if resi_B.over(pos):
+
+        if resi_B.over(pos):#item selected is resitance
             print("Click in resistance")
             resi_B.highlight(True)
             selecting = True
@@ -758,18 +750,18 @@ def DesignMode(): # Screen where someone can design a model
             drag_element = res_image1
             
             
-        elif power_B.over(pos):
+        elif power_B.over(pos):#item selected is power output
             power_B.highlight(True)
             selecting = True
             typeE = 2
             drag_element = pow_image
             
-        elif cable_B.over(pos):
+        elif cable_B.over(pos):#item selected is cable
             cable_B.highlight(True)
             selecting = True
             typeE = 3
 
-        elif Node_B.over(pos):
+        elif Node_B.over(pos):#item selected is node
             Node_B.highlight(False)
             selecting = True
             typeE = 4
@@ -777,22 +769,23 @@ def DesignMode(): # Screen where someone can design a model
         active1 = False
         pos1 = (0,0)
 
-        while selecting:
+############################################################################################################################
+        while selecting: #while the item hasnt been placed
             screen.fill(white)
 
-            pos = pygame.mouse.get_pos()
+            pos = pygame.mouse.get_pos()#gets mouse position
 
             if drag_element != None:
                 screen. blit(drag_element,(pos[0] - (drag_element.get_width()//2) ,pos[1] - (drag_element.get_height()//2)))
 
-            for event in pygame.event.get():
+            for event in pygame.event.get():#checks every event in pygame
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()  
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if pos[1] < s_height-100 and pos[0] < s_width-200:
-                        if typeE == 1:
+                if event.type == pygame.MOUSEBUTTONDOWN:#i the mouse is clicked
+                    if pos[1] < s_height-100 and pos[0] < s_width-200:#If the click happened the the placeable zone
+                        if typeE == 1:#if item is resistance
                             poscal = calculateLocation(pos)
                             tmp = Resistance(len(resistance_S),poscal[0],poscal[1])
                             resistance_S.add(tmp)
@@ -802,7 +795,7 @@ def DesignMode(): # Screen where someone can design a model
                             time.sleep(0.3)
                             justSaved = False
 
-                        elif typeE == 2:
+                        elif typeE == 2:#if item is power output
                             poscal = calculateLocation(pos)
                             tmp = Power_Output(poscal[0],poscal[1])
                             power_S.add(tmp)
@@ -811,10 +804,10 @@ def DesignMode(): # Screen where someone can design a model
                             power_B.unhighlight(True)
                             justSaved = False
 
-                        elif typeE == 3:
+                        elif typeE == 3:#if item is cable
                             if active1:
                             
-                                if (abs(pos1[0]-pos[0]) > abs(pos1[1]-pos[1])):
+                                if (abs(pos1[0]-pos[0]) > abs(pos1[1]-pos[1])):#determines the axis where the cable is 
                                     newpos = calculateLocation(pos)
                                     pos = (pos[0],newpos[1])
                                     pos1 = (pos1[0],newpos[1])
@@ -823,9 +816,9 @@ def DesignMode(): # Screen where someone can design a model
                                     pos = (newpos[0],pos[1])
                                     pos1 = (newpos[0],pos1[1])
                                 
+                                C_list.add_line(Cable_line(pos1,pos)) #adds cables to c list
                                 
-                                C_list.add_line(Cable_line(pos1,pos)) 
-                                
+                                #Deselects the button
                                 cable_B.unhighlight(False)
                                 selecting = False
                                 active1 = False
@@ -838,16 +831,16 @@ def DesignMode(): # Screen where someone can design a model
                                 print(pos1)
                                 justSaved = False
 
-                        elif typeE == 4:
+                        elif typeE == 4:#Item selected is node
                             poscal = calculateLocation(pos)
-                            tmp = Node(poscal[0],poscal[1],node_namer.get_name())
+                            tmp = Node(poscal[0],poscal[1],node_namer.get_name())#creates node
                             node_S.add(tmp)
                             all_sprites.add(tmp)
                             selecting = False
                             Node_B.unhighlight(True)
                             justSaved = False
 
-
+                    #resets the button /Deselects the button
                     elif resi_B.over(pos):
                         selecting = False
                         resi_B.unhighlight(True)
@@ -882,63 +875,67 @@ def DesignMode(): # Screen where someone can design a model
     screen.fill(white)
     
     #variables
-    mouse = pygame.mouse.get_pos()# gets mouse position
-    click = pygame.mouse.get_pressed()#to know if the mouse was pressed
+    mouse = pygame.mouse.get_pos() #gets mouse position
+    click = pygame.mouse.get_pressed() #to know if the mouse was pressed
 
-    draw_designmode()
+    draw_designmode()#draws desing mode
 
-    if options.active:
+    if options.active:#checks if the option button is active
         options.draw(screen)
         options.over(mouse)
         options.item.show_data()
 
+    #checks if the button is highlited
     resi_B.check(mouse)
     power_B.check(mouse)
     cable_B.check(mouse)
     Node_B.check(mouse)
 
-
+    #Depening of where it clicks
     if click[0]:
         if options.active:
             options.overclick(mouse)
 
-        for resistance in resistance_S:
+        for resistance in resistance_S:#Checks if what was clicked was a resistance
             if resistance.over(mouse):
                options.active = True
                options.item = resistance
         
-        for power in power_S:
+        for power in power_S:#Checks if what was clicked was a power
             if power.over(mouse):
                 options.active = True
                 options.item = power
 
-        for node in node_S:
+        for node in node_S:#Checks if what was clicked was a node
             if node.over(mouse):
                 options.active = True
                 options.item = node
 
-        select_element(mouse) 
+        select_element(mouse) # checks normal placing button
 
 
 
-def Draw_simulation():
+def Draw_simulation(): #Function to create the simulation screen
     global arrayTo, shortest_path
-    drawlines(False)
+    drawlines(False)#Draws the lines 
     all_sprites.draw(screen)
+    #creats all buttons
     pygame.draw.rect(screen, greenPichudo,(s_width-200,0,200,s_height),0)
-    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True, None, (58,76,83))
-    TextButton("Design mode", s_width-173, 20, 120, 40, black, white, 30, 38, "design",True, None, (58,76,83))
-    TextButton("Dijkstra", 20, s_height-80, 120, 40, black, white, 30, 38, "dijkstra",True, None, (58,76,83))
-    Button(1130, 535, 30, 55, arrow_down, gray, arrow_downRed, "descendingOrder")
-    Button(1050, 535, 30, 55, arrow_up, gray, arrow_upRed, "ascendingOrder")
-    pygame.draw.rect(screen,(159, 171, 166),(300,s_height-90,600,80),0)
-    pygame.draw.rect(screen, (159, 171, 166),(s_width-175,100,160,400),0)
-    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True, None,(58,76,83) )
+    TextButton("MENU", 20, 20, 120, 40, black, white, 30, 20, "menu", True, None, (58,76,83))#menu
+    TextButton("Design mode", s_width-173, 20, 120, 40, black, white, 30, 38, "design",True, None, (58,76,83))#design mode
+    TextButton("Dijkstra", 20, s_height-80, 120, 40, black, white, 30, 38, "dijkstra",True, None, (58,76,83))#Dijkstra
+    Button(1130, 535, 30, 55, arrow_down, (159, 171, 166), arrow_downRed, "descendingOrder")#descending
+    Button(1050, 535, 30, 55, arrow_up, (159, 171, 166), arrow_upRed, "ascendingOrder")#ascending
+    #
+    pygame.draw.rect(screen,(159, 171, 166),(300,s_height-90,600,80),0)#-----------
+    pygame.draw.rect(screen, (159, 171, 166),(s_width-175,100,160,400),0)#----------------
+    TextButton("SAVE", s_width-170, 610, 120, 40, black, white, 30, 20, "save", True, None,(58,76,83) )#---------
 
-    Printdijkstra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)
-    Printdijkstra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)
+    Printdijkstra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)#----------
+    Printdijkstra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)#----------
 
 
+    #checks the array 
     if arrayToPrint != []:
         PrintOrder(arrayToPrint)
     
@@ -952,36 +949,31 @@ def Draw_simulation():
         Text(s_width//2 - 170, 20, 60, namePro.split(".")[0], black)
    
 
-def Simulationmode():
+def Simulationmode(): #Function that initiates simulation mode
     
     screen.fill(white)
     Draw_simulation()
-    mouse = pygame.mouse.get_pos()
-    for node in node_S:
+    mouse = pygame.mouse.get_pos()#Gets mouse position
+
+    for node in node_S:#Checks mouse over node
         if node.over(mouse):
             node.show_sim()
 
-    for resistance in resistance_S:
+    for resistance in resistance_S:#Checks mouse over resistance
         if resistance.over(mouse):
             resistance.show_data()
 
-    for power in power_S:
+    for power in power_S:#checks mouse over power output
         if power.over(mouse):
             power.show_data()
 
-
-
-
-
-
-def dijkstra_nodes():
+def dijkstra_nodes(): #Function that uses two selected nodes to apply the Dijkstra algorithm between them
     
     node1 = None
     node2 = None
-    selecting = True
-   
+    selecting = True   
     
-    while selecting:
+    while selecting:#
         pos = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
@@ -1011,8 +1003,6 @@ def dijkstra_nodes():
     shortest_path += dijkstra[1][i_path]
 
     dataH.set_path(shortest_path)
-
-    
         
     dataH.set_weight(str(dijkstra[0]))
     
@@ -1020,7 +1010,7 @@ def dijkstra_nodes():
     
 
     
-def Dijkstra(graph,start,goal):
+def Dijkstra(graph,start,goal): #Function that calculates the shortest route from one node to another and its total weight
     shortest_distance = {}
     predecessor = {}
     unseenNodes = list(graph.v.keys())
@@ -1060,12 +1050,12 @@ def Dijkstra(graph,start,goal):
     return (shortest_distance[goal],path)
     
 # Objects 
-def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to create a button
+def Button(x, ys, wid, hei, image,fill,image2,  action = None): #function to create a button
     global seleccion, gas, score, finish_time, lives, active, ReWriteName, quantityWRITE, arrayToPrint
-    mouse = pygame.mouse.get_pos()# gets mouse position
-    click = pygame.mouse.get_pressed()#to know if the mouse was pressed
+    mouse = pygame.mouse.get_pos() #gets mouse position
+    click = pygame.mouse.get_pressed() #to know if the mouse was pressed
 
-    #pygame.draw.rect(screen, fill, [x, ys, wid, hei])#if the mouse if above the image and creates a rectangle
+    pygame.draw.rect(screen, fill, [x, ys, wid, hei]) #if the mouse if above the image and creates a rectangle
 
     if x + wid > mouse[0] > x and ys + hei > mouse[1] > ys:
         if click[0] == 1 and action != None:
@@ -1091,11 +1081,11 @@ def Button(x, ys, wid, hei, image,fill,image2,  action = None):#function to crea
     else:
         screen.blit(image, (x, ys))
 
-def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None, rectColor = None):
+def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_size, extraSize, action = None, OptionalRect = None, toLoad = None, rectColor = None): #Function that creates a textbutton
     global ScreenNum, saved, justSaved, counterSave, namePro
     color = ActiveColor
-    mouse = pygame.mouse.get_pos()# gets mouse position
-    click = pygame.mouse.get_pressed()#to know if the mouse was pressed
+    mouse = pygame.mouse.get_pos() #gets mouse position
+    click = pygame.mouse.get_pressed() #to know if the mouse was pressed
 
     width += extraSize
 
@@ -1116,7 +1106,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                 time.sleep(0.3)
                 arrayToPrint = []
 
-            elif action == "menu":
+            elif action == "menu":#menu 
                 if not justSaved:
                     Tk().wm_withdraw()
                     if messagebox.askyesno("SAVED PROJECTS", "Do you want to Exit without saving "  + "?", icon = "warning"):
@@ -1146,7 +1136,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     arrayToPrint = []
                 
 
-            elif action == "import":
+            elif action == "import":#import
                 Tk().wm_withdraw()
                 if messagebox.askyesno("SAVED PROJECTS", "Do you want to load " + toLoad.split(".")[0] + "?"):
                     project = LoadProject(toLoad)
@@ -1155,7 +1145,7 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                     ScreenNum = 1
                     justSaved = True
 
-            elif action == "new":
+            elif action == "new":#
                 TkinterSaved()
                 
             elif action == "save":
@@ -1192,19 +1182,19 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
     PrintText( xpos, ypos, text_size, text, color, width, height)
         
 
-def PrintText(x, y, size, text, color, width = None, height = None):
+def PrintText(x, y, size, text, color, width = None, height = None): #Function that puts text on the screen
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     
     screen.blit(text, (x +(width//2 - text.get_width()//2), y + (height//2 - text.get_height()//2)))
 
 
-def Printdijkstra(x,y,size,text,color):
+def Printdijkstra(x,y,size,text,color): #Function that puts relevant Dijkstra values on the screen
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     screen.blit(text, (x , y))
 
-def Text(x, y, size, text, color):
+def Text(x, y, size, text, color): #Function that puts text on the screen
     font = pygame.font.SysFont("Teko", size)
     text = font.render(text, True, color)
     screen.blit(text, (x,y))
@@ -1215,14 +1205,14 @@ def WriteNewSaved(name): #writes info to then load a project
     registry.write(name + "{")
     registry.close()
 
-def WriteProject(data, name):
+def WriteProject(data, name): #Function that saves a circuit
     global tkActive
     route = "./savedProjects/" + name
     registry = open(route, "w")
     registry.write(data)
     registry.close()
 
-def ReadProject(project):
+def ReadProject(project): #Function that read lines of an specific project
     route = "./savedProjects/" + project
     read = open(route)
     content = read.readlines()
@@ -1231,8 +1221,7 @@ def ReadProject(project):
 
     return content
 
-
-def LoadProject(project):
+def LoadProject(project): #function to load lines from a project and draw everthing in design mode
     route = "./savedProjects/" + project
     read = open(route)
     content = read.readlines()
@@ -1256,12 +1245,12 @@ def LoadProject(project):
            
     read.close()
     
-def create_graph(content):
+def create_graph(content):#function to create a graph from a saved project
 
     dictionary = eval(content[1])
     graph.v = dictionary
     
-def create_Res(content):
+def create_Res(content):#function to create all resistances from a saved project
     
     tmp = Resistance(content[1],int(content[2]),int(content[3]))
     resistance_S.add(tmp)
@@ -1272,7 +1261,7 @@ def create_Res(content):
         tmp.rotate()
 
 
-def create_Pow(content):
+def create_Pow(content):#function to create the batery from a saved project
     
     tmp = Power_Output(int(content[2]),int(content[3]))
     power_S.add(tmp)
@@ -1283,24 +1272,24 @@ def create_Pow(content):
     if content[4] == "1":
         tmp.rotate()
 
-def create_Cable(content):
+def create_Cable(content): #function to create the cables from a saved project
     
     C_list.add_line(Cable_line((int(content[2]),int(content[3])),(int(content[4]),int(content[5])))) 
 
-def create_Node(content):
+def create_Node(content): #function to create nodes from a saved projects
 
     tmp = Node(int(content[2]),int(content[3]),content[1])
     node_S.add(tmp)
     all_sprites.add(tmp)
     
-def SeparateContent(data):
+def SeparateContent(data): #function to separete content
     try:
         data = data[0].split("{")
         return data
     except:
         return []
 
-def DeleteFile(name):
+def DeleteFile(name): #function to delete a file from computer
     route = "./savedProjects"
     files = os.listdir(route)
 
@@ -1327,7 +1316,7 @@ def DeleteFile(name):
         print(temp)
         file.write(temp)
 
-def SaveAll():
+def SaveAll():#function to save everthing
     with open("./savedProjects/" + namePro, 'w') as savefile:
         tmp = ""
         for res in resistance_S:
@@ -1346,11 +1335,9 @@ def SaveAll():
             tmp = str(cable.type)+'|'+str(cable.id)+ '|'+str(cable.pos1[0])+'|'+str(cable.pos1[1])+'|'+str(cable.pos2[0])+"|"+str(cable.pos2[1])
             savefile.writelines(tmp+"\n")
 
-        
-        
         savefile.writelines("graph"+"|"+str(graph.v))
 
-def SaveProject():
+def SaveProject():#fucntion to save a project
     global justSaved, counterSave, namePro
     justSaved = True
     if counterSave == 0:
@@ -1374,7 +1361,7 @@ def SaveProject():
     else:
         SaveAll()
 
-def CheckName(name):
+def CheckName(name):#function to check if a name already exists
     name += ".txt"
     route = "./savedProjects"
     files = os.listdir(route)
@@ -1384,7 +1371,7 @@ def CheckName(name):
         return False
 
 ######## ORDERING ALGORITHMS ########
-def QuickSort(array): #Descending
+def QuickSort(array): #Sorts in Descending order
         minor = []
         equal = []
         major = []
@@ -1405,7 +1392,7 @@ def QuickSort(array): #Descending
         else:
             return array
 
-def InsertionSort(array):
+def InsertionSort(array): #Sorts in Ascending order 
         length = len(array)
 
         for i in range(1, length):
@@ -1420,7 +1407,7 @@ def InsertionSort(array):
 
         return array
 
-def PrintOrder(array):
+def PrintOrder(array): #Prints the list in the selected order, Ascending or Descending on the screen
     global FPS
     print("Entrando a imprimir")
     xpos = 1030
