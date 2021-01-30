@@ -151,11 +151,17 @@ class Graph: #Class to create the graph
     
     def add_Edge(self, frm, to, res):#method to add a edge
         if to in self.v[frm]:#Determinar si el nodo ya existe en el grafo
-            to = str(to) + str(self.i)
-            self.i += 1
-            self.add_Vertex(to)
+            #to = str(to) + str(self.i)
+            #self.i += 1
+            if self.v[frm][to] >= res.get_Res():
+                resFinal = res.get_Res()
+                self.v[frm].update({to: resFinal})
 
-        self.v[frm].update({to: res.get_Res()})
+        else:
+            self.v[frm].update({to: res.get_Res()})
+
+            
+            #self.add_Vertex(to)
         
     
     def empty(self):#method to clear all the graph
@@ -934,7 +940,6 @@ def Draw_simulation(): #Function to create the simulation screen
     Printdijkstra(320,s_height-80,30,"Shortest Path: " + dataH.path, black)#----------
     Printdijkstra(320,s_height-50,30,"Minimum Weight: " + str(dataH.weight),black)#----------
 
-
     #checks the array 
     if arrayToPrint != []:
         PrintOrder(arrayToPrint)
@@ -1005,10 +1010,6 @@ def dijkstra_nodes(): #Function that uses two selected nodes to apply the Dijkst
     dataH.set_path(shortest_path)
         
     dataH.set_weight(str(dijkstra[0]))
-    
-    
-    
-
     
 def Dijkstra(graph,start,goal): #Function that calculates the shortest route from one node to another and its total weight
     shortest_distance = {}
@@ -1171,6 +1172,9 @@ def TextButton(text, xpos, ypos, width, height, ActiveColor, InactiveColor,text_
                 
             elif action == "dijkstra":
                 dijkstra_nodes()
+
+            elif action == "Ohm":
+                CalculateCiurcuitType()
 
 
         elif click[2] == 1:
@@ -1409,7 +1413,7 @@ def InsertionSort(array): #Sorts in Ascending order
 
 def PrintOrder(array): #Prints the list in the selected order, Ascending or Descending on the screen
     global FPS
-    print("Entrando a imprimir")
+    #print("Entrando a imprimir")
     xpos = 1030
     ypos = 80
     length = len(array)
@@ -1419,6 +1423,67 @@ def PrintOrder(array): #Prints the list in the selected order, Ascending or Desc
         Text(xpos, ypos, 20, array[counter], (58,76,83))
         counter += 1
 
+def CalculateCiurcuitType():
+    #for res in resistance_S:
+#tmp = str(res.type)+'|'+str(res.id)+'|'+str(res.rect.centerx)+'|'+str(res.rect.centery)+"|"+str(res.get_rotation()) + "|"+ str(res.get_Res())
+    paralelo = []
+    serie = []
+    resList = []
+    length = len(resistance_S)
+
+    for res in resistance_S:
+        resList+= [res]
+    pivotex = resList[0].x
+    pivotey = resList[0].y
+    pivoteRot = resList[0].get_rotation()
+    counter = 1
+
+
+    while counter < length:
+        analize = resList[counter]
+        if analize.get_rotation() == 0 and pivoteRot == 0:
+            if analize.x == pivotex or analize.x in range(pivotex-400, pivotex + 400):
+                if analize.y != pivotey:
+                    paralelo += [analize]
+            elif analize.y == pivotey or analize.y in range(pivotey-400, pivotey+400):
+                serie += [analize]
+
+        elif analize.get_rotation() == 1 and pivoteRot == 1:
+            if analize.x == pivotex or analize.x in range(pivotex-400, pivotex + 400):
+                if analize.y != pivotey:
+                    serie += [analize]
+            elif analize.y == pivotey or analize.y in range(pivotey-400, pivotey+400):
+                paralelo += [analize]
+
+        counter += 1
+
+    pivoteRot = resList[length-1].get_rotation()
+    pivotex = resList[length-1].x
+    pivotey = resList[length-1].y
+
+    analize = resList[0]
+
+    if analize.get_rotation() == 0 and pivoteRot == 0:
+            if analize.x == pivotex or analize.x in range(pivotex-400, pivotex + 400):
+                if analize.y != pivotey:
+                    paralelo += [analize]
+            elif analize.y == pivotey or analize.y in range(pivotey-400, pivotey+400):
+                serie += [analize]
+
+    elif analize.get_rotation() == 1 and pivoteRot == 1:
+        if analize.x == pivotex or analize.x in range(pivotex-400, pivotex + 400):
+                if analize.y != pivotey:
+                    serie += [analize]
+
+        elif analize.y == pivotey or analize.y in range(pivotey-400, pivotey+400):
+            paralelo += [analize]
+    #return [[paralelo], [serie]]
+    print([[paralelo], [serie]])
+
+def CircuitTypeAux(analize, pivoteRot, pivotey, pivotex):
+    pass
+
+                
 
 ######## MAIN LOOP ############                
 while True: 

@@ -1,0 +1,18 @@
+res|res01|350|240|0|50
+res|podeeer|840|240|0|100
+res|fuaaaa|560|310|1|1000
+power|V0|210|310|0|5
+node|a|210|240|None
+node|d|560|240|None
+node|e|560|380|None
+cable|None|210|260|210|240
+cable|None|210|240|317|240
+cable|None|396|240|802|240
+cable|None|888|240|911|240
+cable|None|910|240|910|381
+cable|None|915|380|218|380
+cable|None|221|380|211|380
+cable|None|210|380|210|356
+cable|None|560|355|560|381
+cable|None|560|264|560|242
+graph|{'a': {'d': 50}, 'd': {'e': 100}, 'e': {}}

@@ -1,1 +1,1 @@
-PruebaRes.txt{
+Prueba 1.txt{
